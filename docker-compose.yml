@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+    mongo:
+        image: mongo:4.4.18
+        volumes:
+            - mongo_data_users:/data/db
+        ports:
+            - 27017:27017
+        env_file:
+            - ./.env
+        restart: unless-stopped
+
+    users:
+        build:
+            context: ./users
+        env_file:
+            - ./.env
+        volumes:
+            - ./users:/app
+        tty: true
+        depends_on:
+            - mongo
+
+    nginx:
+        build: ./nginx/
+        restart: unless-stopped
+        ports:
+            - 80:80
+            - 443:443
+        depends_on:
+            - users
+
+volumes:
+    mongo_data_users:
