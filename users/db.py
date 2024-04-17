@@ -14,3 +14,16 @@ client = MongoClient(MONGO_URI, uuidRepresentation='standard')
 
 # get database
 db = client[MONGO_DATABASE]
+
+try:
+    # check if the clubs index exists
+    if "unique_username" in db.users.index_information():
+        print("The username index exists in users.")
+    else:
+        # create the index
+        db.users.create_index([("username", 1)], unique=True, name="unique_username")
+        print("The username index was created in users.")
+
+    print(db.users.index_information())
+except Exception:
+    pass
