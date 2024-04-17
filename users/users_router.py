@@ -58,11 +58,8 @@ async def register(
     check_phone_number(user.contact)
     validate_role(user.role)
 
-    body = await request.body()
-    user1 = ast.literal_eval(body.decode())
-
     # Create User and Set Session
-    create_user(user1)
+    create_user(user.model_dump())
 
     request.session["username"] = user.username
 
@@ -94,7 +91,7 @@ async def login(
 
 
 # Get Current User Endpoint
-@router.get("/details")
+@router.get("/details", response_model=User, status_code=status.HTTP_200_OK)
 async def read_users_me(
     request: Request, current_user: User = Depends(get_current_user)
 ):
@@ -102,7 +99,9 @@ async def read_users_me(
 
 
 # Get current user or not
-@router.get("/current", response_model=UserLoginResponse)
+@router.get(
+    "/current", response_model=UserLoginResponse, status_code=status.HTTP_200_OK
+)
 async def check_user(request: Request, username: str = Depends(check_current_user)):
     if not username:
         raise HTTPException(
@@ -112,14 +111,14 @@ async def check_user(request: Request, username: str = Depends(check_current_use
 
 
 # User Logout
-@router.post("/logout")
+@router.post("/logout", status_code=status.HTTP_202_ACCEPTED)
 async def logout(request: Request, current_user: User = Depends(get_current_user)):
     request.session.pop("username", None)
     return {"message": "Logged Out Successfully"}
 
 
 # Change Password
-@router.post("/change-password")
+@router.post("/change-password", status_code=status.HTTP_202_ACCEPTED)
 async def change_password(
     request: Request,
     passwords: ChangePasswordInput,
@@ -140,19 +139,13 @@ async def change_password(
 
 
 # User Registration Endpoint
-@router.put("/edit", status_code=status.HTTP_200_OK)
+@router.put("/edit", status_code=status.HTTP_202_ACCEPTED)
 async def edit(
     request: Request,
     response: Response,
     user: UserEditInput,
     current_user: User = Depends(get_current_user),
 ):
-    if user.username != current_user.username:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Username cannot be changed",
-        )
-
     # Check if user email already exists
     user.email = user.email.lower()
     if user.email != current_user.email and get_user_by_email(user.email):
@@ -162,12 +155,8 @@ async def edit(
 
     check_phone_number(user.contact)
 
-    # Update User and Return Response
-    body = await request.body()
-    user1 = ast.literal_eval(body.decode())
-
     # Update the fields from user1 to current_user
-    for key, value in user1.items():
+    for key, value in user.model_dump().items():
         setattr(current_user, key, value)
 
     # convert current user to dict
