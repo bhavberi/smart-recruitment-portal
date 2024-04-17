@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-    mongo:
+    mongo_users:
         image: mongo:4.4.18
         volumes:
             - mongo_data_users:/data/db
         ports:
             - 27017:27017
         env_file:
-            - ./.env
+            - ./envs/.env.users
         restart: unless-stopped
 
     users:
@@ -16,11 +16,12 @@ services:
             context: ./users
         env_file:
             - ./.env
+            - ./envs/.env.users
         volumes:
             - ./users:/app
         tty: true
         depends_on:
-            - mongo
+            - mongo_users
 
     nginx:
         build: ./nginx/
