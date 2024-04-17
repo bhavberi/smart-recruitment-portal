@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
     mongo_users:
-        image: mongo:4.4.18
+        image: mongo:7.0.8
         volumes:
             - mongo_data_users:/data/db
         ports:
@@ -24,7 +24,7 @@ services:
             - mongo_users
 
     mongo_applications:
-        image: mongo:4.4.18
+        image: mongo:7.0.8
         volumes:
             - mongo_data_applications:/data/db
         command: mongod --port 27018
