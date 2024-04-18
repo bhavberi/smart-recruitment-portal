@@ -54,6 +54,7 @@ services:
             - 443:443
         depends_on:
             - users
+            - applications
 
 volumes:
     mongo_data_users:
