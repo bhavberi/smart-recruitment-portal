@@ -10,6 +10,7 @@ class UserLogin(BaseModel):
 # User Login Response Model
 class UserLoginResponse(BaseModel):
     username: str
+    role: str
 
 
 # Change Password Input Model

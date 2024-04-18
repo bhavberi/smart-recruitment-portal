@@ -1,11 +1,11 @@
-from fastapi import APIRouter, HTTPException, Depends, Response, Request, status
+from fastapi import APIRouter, HTTPException, Depends, Response, Request, status, Cookie
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 import re
-import ast
 
 from models.users import User
 from models.users_otypes import UserLoginResponse, ChangePasswordInput, UserEditInput
 from utils import (
+    create_access_token,
     check_current_user,
     get_current_user,
     check_phone_number,
@@ -31,11 +31,12 @@ async def register(
     request: Request,
     response: Response,
     user: User,
-    username: str = Depends(check_current_user),
+    access_token_se_p3: str = Depends(check_current_user),
 ):
-    if username:
+    if access_token_se_p3:
+        user = await get_current_user(access_token_se_p3)
         response.status_code = status.HTTP_304_NOT_MODIFIED
-        return {"username": username}
+        return {"username": user.username, "role": user.role}
 
     user.email = user.email.lower()
 
@@ -61,20 +62,22 @@ async def register(
     # Create User and Set Session
     create_user(user.model_dump())
 
-    request.session["username"] = user.username
+    access_token = create_access_token(data={"sub": user.username})
+    response.set_cookie(key="access_token_se_p3", value=access_token, httponly=True)
 
-    return {"username": user.username}
+    return {"username": user.username, "role": user.role}
 
 
 # User Login Endpoint
 @router.post("/login", status_code=status.HTTP_200_OK, response_model=UserLoginResponse)
 async def login(
     request: Request,
+    response: Response,
     form_data: OAuth2PasswordRequestForm = Depends(),
-    username: str = Depends(check_current_user),
+    access_token_se_p3: str = Depends(check_current_user),
 ):
-    if username:
-        request.session.pop("username", None)
+    if access_token_se_p3:
+        response.delete_cookie("access_token_se_p3")
 
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
@@ -84,17 +87,16 @@ async def login(
             headers={"set-cookie": ""},
         )
 
-    # Set Session
-    request.session["username"] = user.username
+    # Create Access Token and Set Cookie
+    new_access_token = create_access_token(data={"sub": user.username})
+    response.set_cookie(key="access_token_se_p3", value=new_access_token, httponly=True)
 
-    return {"username": user.username}
+    return {"username": user.username, "role": user.role}
 
 
 # Get Current User Endpoint
 @router.get("/details", response_model=User, status_code=status.HTTP_200_OK)
-async def read_users_me(
-    request: Request, current_user: User = Depends(get_current_user)
-):
+async def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
@@ -102,18 +104,14 @@ async def read_users_me(
 @router.get(
     "/current", response_model=UserLoginResponse, status_code=status.HTTP_200_OK
 )
-async def check_user(request: Request, username: str = Depends(check_current_user)):
-    if not username:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized"
-        )
-    return {"username": username}
+async def check_user(current_user: User = Depends(get_current_user)):
+    return {"username": current_user.username, "role": current_user.role}
 
 
 # User Logout
 @router.post("/logout", status_code=status.HTTP_202_ACCEPTED)
-async def logout(request: Request, current_user: User = Depends(get_current_user)):
-    request.session.pop("username", None)
+async def logout(response: Response, current_user: User = Depends(get_current_user)):
+    response.delete_cookie("access_token_se_p3")
     return {"message": "Logged Out Successfully"}
 
 
@@ -121,6 +119,7 @@ async def logout(request: Request, current_user: User = Depends(get_current_user
 @router.post("/change-password", status_code=status.HTTP_202_ACCEPTED)
 async def change_password(
     request: Request,
+    response: Response,
     passwords: ChangePasswordInput,
     current_user: User = Depends(get_current_user),
 ):
@@ -132,8 +131,9 @@ async def change_password(
 
     update_user_password(current_user.username, passwords.new_password)
 
-    # Set Session
-    request.session["username"] = user.username
+    # Create Access Token and Set Cookie
+    new_access_token = create_access_token(data={"sub": user.username})
+    response.set_cookie(key="access_token_se_p3", value=new_access_token, httponly=True)
 
     return {"message": "Password changed successfully!"}
 
@@ -143,7 +143,7 @@ async def change_password(
 async def edit(
     request: Request,
     response: Response,
-    user: UserEditInput,
+    user: UserEditInput,  # type: ignore
     current_user: User = Depends(get_current_user),
 ):
     # Check if user email already exists
