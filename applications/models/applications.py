@@ -7,7 +7,7 @@ class Listing(BaseModel):
 class Application(BaseModel):
     user: str
     listing: str
-    accepted: bool  # how to set default to false?
+    accepted: bool
     twitter_id: str
     linkedin_id: str
 

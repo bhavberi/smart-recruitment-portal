@@ -34,10 +34,6 @@ def validate_linkedin(id: str):
     return bool(re.match(pattern, id))
 
 
-def validate_user(username: str):  # implement
-    return True
-
-
 def validate_user_and_application_user(username_application: str, username: str):
     return username == username_application
 
@@ -65,7 +61,7 @@ def create_listing(listing: dict):
 
 
 def create_application(application: ApplicationInput):
-    application["approved"] = False
+    application["accepted"] = False
     result = db.applications.insert_one(application)
     return str(result.inserted_id)
 
@@ -87,7 +83,7 @@ def get_all_listings():
 
 def approve_application(username: str, listing: str):
     result = db.applications.update_one(
-        {"username": username, "listing": listing}, {"$set": {"accepted": True}}
+        {"user": username, "listing": listing}, {"$set": {"accepted": True}}
     )
     return result
 

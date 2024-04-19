@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from models.applications import Listing, Application
+
 class ListingResponse(BaseModel):
     name: str
 
@@ -14,7 +16,7 @@ class Approval(BaseModel):
     status: bool
 
 class Applications(BaseModel):
-    applications: list  # validate if this is correct
+    applications: list[Application]
 
 class ApplicationInput(BaseModel):
     user: str
@@ -23,4 +25,4 @@ class ApplicationInput(BaseModel):
     linkedin_id: str
 
 class Listings(BaseModel):
-    listings: list  # validate if this is correct
+    listings: list[Listing]

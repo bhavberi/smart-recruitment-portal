@@ -19,7 +19,6 @@ from utils import (
     validate_linkedin,
     create_application,
     validate_role_recruiter,
-    validate_user,
     get_user_application,
     approve_application,
     validate_user_application,
@@ -39,13 +38,9 @@ router = APIRouter()
     "/make_listing", status_code=status.HTTP_201_CREATED, response_model=ListingResponse
 )
 async def make_listing(
-    request: Request,
     listing: Listing,
     user=Depends(get_user),
 ):
-    print("===============================")
-    print(user)
-    print("===============================")
 
     # check if user is admin
     if not validate_role_admin(user["role"]):
@@ -71,53 +66,22 @@ async def make_listing(
 
 # Get all the listings
 @router.get("/get_Listings", status_code=status.HTTP_200_OK, response_model=Listings)
-async def get_listings():
-    # check if user if logged in
-    url = "/api/users/details"
-    response = requests.get(url)
-    if response.status_code == 200:
-        user = response.json()
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Not logged in",
-            headers={"set-cookie": ""},
-        )
+async def get_listings(
+    user=Depends(get_user),
+):
 
-    # validate if the user is applicant or recruiter
-    if not (validate_role_recruiter(user.role) or validate_role_candidate(user.role)):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No Permission",
-            headers={"set-cookie": ""},
-        )
-
-    listings = Listings()
-    listings.listings = get_all_listings()
-    return listings  # validate if correct
+    return Listings(listings = get_all_listings())
 
 
 # apply for job
-@router.post(
-    "/apply", status_code=status.HTTP_201_CREATED, response_model=ApplicationResponse
-)
+@router.post("/apply", status_code=status.HTTP_201_CREATED, response_model=ApplicationResponse)
 async def apply(
     application: ApplicationInput,
+    user=Depends(get_user),
 ):
-    # check if user if logged in
-    url = "/api/users/details"
-    response = requests.get(url)
-    if response.status_code == 200:
-        user = response.json()
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Not logged in",
-            headers={"set-cookie": ""},
-        )
 
     # check if the logged in user is applying for himself
-    if application.user != user.username:
+    if application.user != user["username"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect Username",
@@ -125,7 +89,7 @@ async def apply(
         )
 
     # check if the user is candidate
-    if not validate_role_candidate(user.role):
+    if not validate_role_candidate(user["role"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No Permission",
@@ -141,7 +105,7 @@ async def apply(
         )
 
     # validae if the application already exists
-    if validate_user_application(application.user, application.listing):
+    if not validate_user_application(application.user, application.listing):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Application already exists",
@@ -165,26 +129,14 @@ async def apply(
 
 
 # get all the applications for a particular listing
-@router.get(
-    "/get_applications", status_code=status.HTTP_200_OK, response_model=Applications
-)
+@router.post("/get_applications", status_code=status.HTTP_200_OK, response_model=Applications)
 async def get_applications(
     listing: Listing,
+    user=Depends(get_user),
 ):
-    # check if user if logged in
-    url = "/api/users/details"
-    response = requests.get(url)
-    if response.status_code == 200:
-        user = response.json()
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Not logged in",
-            headers={"set-cookie": ""},
-        )
 
     # validate if the user is recruiter
-    if not validate_role_recruiter(user.role):
+    if not validate_role_recruiter(user["role"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No Permission",
@@ -199,41 +151,21 @@ async def get_applications(
             headers={"set-cookie": ""},
         )
 
-    applications = Applications()
-    applications.applications = get_all_applications(listing.name)
-    return applications  # validate if correct
+    return Applications(applications = get_all_applications(listing.name))
 
 
 # get the report for an application
-@router.get("/get_report", status_code=status.HTTP_200_OK, response_model=Report)
+@router.post("/get_report", status_code=status.HTTP_200_OK, response_model=Report)
 async def get_report(
     userapplication: UserApplication,
+    user=Depends(get_user),
 ):
-    # check if user if logged in
-    url = "/api/users/details"
-    response = requests.get(url)
-    if response.status_code == 200:
-        user = response.json()
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Not logged in",
-            headers={"set-cookie": ""},
-        )
 
     # validate if the user is recruiter
-    if not validate_role_recruiter(user.role):
+    if not validate_role_recruiter(user["role"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No Permission",
-            headers={"set-cookie": ""},
-        )
-
-    # validate if user exists
-    if not validate_user(userapplication.username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No such user",
             headers={"set-cookie": ""},
         )
 
@@ -245,7 +177,7 @@ async def get_report(
     if not application:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No application by this user",
+            detail="No such application",
             headers={"set-cookie": ""},
         )
 
@@ -304,32 +236,14 @@ async def get_report(
 @router.put("/approve", status_code=status.HTTP_202_ACCEPTED)
 async def approve(
     userapplication: UserApplication,
+    user=Depends(get_user),
 ):
-    # check if user if logged in
-    url = "/api/users/details"
-    response = requests.get(url)
-    if response.status_code == 200:
-        user = response.json()
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Not logged in",
-            headers={"set-cookie": ""},
-        )
 
     # validate if the user is recruiter
-    if not validate_role_recruiter(user.role):
+    if not validate_role_recruiter(user["role"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No Permission",
-            headers={"set-cookie": ""},
-        )
-
-    # validate if user exists
-    if not validate_user(userapplication.username):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No such user",
             headers={"set-cookie": ""},
         )
 
@@ -341,41 +255,32 @@ async def approve(
     if not application:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No application by this user",
+            detail="No such application",
             headers={"set-cookie": ""},
         )
 
-    result = approve_application(userapplication.username, userapplication.listing)
-    if not result.modified_count:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update user details!",
-        )
+    if not application["accepted"] == True:
+
+        result = approve_application(userapplication.username, userapplication.listing)
+
+        if not result.modified_count:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update user details!",
+            )
 
     return {"message": "User application updated successfully!"}
 
 
-# chec if the application is approved
-@router.get(
-    "/get_application_status", status_code=status.HTTP_200_OK, response_model=Approval
-)
+# check if the application is approved
+@router.post("/get_application_status", status_code=status.HTTP_200_OK, response_model=Approval)
 def get_application_status(
     userapplication: UserApplication,
+    user=Depends(get_user),
 ):
-    # check if user if logged in
-    url = "/api/users/details"
-    response = requests.get(url)
-    if response.status_code == 200:
-        user = response.json()
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Not logged in",
-            headers={"set-cookie": ""},
-        )
 
     # valuidate if the user is a candidate
-    if not validate_role_candidate(user.role):
+    if not validate_role_candidate(user["role"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="No Permission",
@@ -383,7 +288,7 @@ def get_application_status(
         )
 
     # validate if the user os checking his own application status
-    if not validate_user_and_application_user(userapplication.username, user):
+    if not validate_user_and_application_user(userapplication.username, user["username"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Can't check for other users",
@@ -402,4 +307,4 @@ def get_application_status(
             headers={"set-cookie": ""},
         )
 
-    return {"status": application.accepted}
+    return {"status": application["accepted"]}
