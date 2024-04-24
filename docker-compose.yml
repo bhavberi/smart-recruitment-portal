@@ -46,6 +46,35 @@ services:
         depends_on:
             - mongo_applications
 
+
+    # AI Services
+    llama:
+        build:
+            context: ./AI/llama
+        env_file:
+            - ./.env
+        volumes:
+            - ./AI/llama:/app
+        tty: true
+
+    mbti:
+        build:
+            context: ./AI/mbti
+        env_file:
+            - ./.env
+        volumes:
+            - ./AI/mbti:/app
+        tty: true
+
+    sentiment:
+        build:
+            context: ./AI/sentiment
+        env_file:
+            - ./.env
+        volumes:
+            - ./AI/sentiment:/app
+        tty: true
+
     nginx:
         build: ./nginx/
         restart: unless-stopped
@@ -55,6 +84,9 @@ services:
         depends_on:
             - users
             - applications
+            - llama
+            - mbti
+            - sentiment
 
 volumes:
     mongo_data_users:
