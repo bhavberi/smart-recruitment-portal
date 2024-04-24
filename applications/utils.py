@@ -9,7 +9,7 @@ def create_listing(listing: dict):
     result = db.listings.insert_one(listing)
     return str(result.inserted_id)
 
-def delete_listing(name: str):
+def remove_listing(name: str):
     db.applications.delete_many({"listing": name})
     result = db.listings.delete_one({"name": name})
     return result

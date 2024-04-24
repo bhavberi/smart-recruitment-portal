@@ -13,7 +13,7 @@ from models.applications_otypes import (
 )
 from utils import (
     create_listing,
-    delete_listing,
+    remove_listing,
     create_application,
     get_user_application,
     approve_application,
@@ -74,7 +74,7 @@ async def delete_listing(
         handler.handle_request(request)
     
         # delete listing
-        delete_listing(listing.name)
+        remove_listing(listing.name)
     
         return {"name": listing.name}
 
