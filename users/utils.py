@@ -7,6 +7,7 @@ from typing import Optional
 from pytz import timezone
 from os import getenv
 import phonenumbers
+import re
 
 from models.users import User, Role
 from db import db
@@ -33,36 +34,6 @@ def get_password_hash(password: str):
 # Verify password using bcrypt
 def verify_password(plain_password: str, hashed_password: str):
     return pwd_context.verify(plain_password, hashed_password)
-
-
-# Check the validity of a phone number
-def check_phone_number(phone_number: str):
-    try:
-        contact = phonenumbers.parse(phone_number, "IN")
-        if not phonenumbers.is_valid_number(contact):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid phone number"
-            )
-    except phonenumbers.phonenumberutil.NumberParseException:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid phone number"
-        )
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An Error Occured!",
-        )
-
-    return True
-
-
-def validate_role(role: str):
-    if role not in Role.__members__:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Role"
-        )
-    return True
-
 
 # Create User in MongoDB
 def create_user(user: dict):

@@ -8,14 +8,23 @@ from utils import (
     create_access_token,
     check_current_user,
     get_current_user,
-    check_phone_number,
-    validate_role,
     get_user_by_email,
     get_user_by_username,
     create_user,
     authenticate_user,
     update_user,
     update_user_password,
+)
+
+from validation import (
+    AbstractHandler,
+    EmailValidator,
+    EmailDuplicateValidator,
+    UsernameDuplicateValidator,
+    PhoneNumberValidator,
+    UsernameValidator,
+    RoleValidator,
+    PasswordValidator
 )
 
 router = APIRouter()
@@ -40,24 +49,18 @@ async def register(
 
     user.email = user.email.lower()
 
-    # Check if user already exists
-    if get_user_by_username(user.username):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Username already registered"
-        )
-    if get_user_by_email(user.email):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
-        )
+    handler = EmailValidator().set_next_handler(EmailDuplicateValidator().set_next_handler(UsernameValidator().set_next_handler(UsernameDuplicateValidator().set_next_handler(PhoneNumberValidator().set_next_handler(RoleValidator().set_next_handler(PasswordValidator()))))))
+    dict_user = {}
+    dict_user['email'] = user.email
+    dict_user['username'] = user.username
+    dict_user['phonenumber'] = user.contact
+    dict_user['role'] = user.role
+    dict_user['password'] = user.password
 
-    if bool(re.match("^[a-zA-Z0-9]*$", user.username)) is False:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username should only contain alphanumeric characters",
-        )
-
-    check_phone_number(user.contact)
-    validate_role(user.role)
+    try:
+        handler.handle_request(dict_user)
+    except HTTPException as e:
+        raise e
 
     # Create User and Set Session
     create_user(user.model_dump())
@@ -152,8 +155,21 @@ async def edit(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
         )
+    
+    # Check if user username already exists
+    if user.username != current_user.username and get_user_by_username(user.username):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Username already registered"
+        )
 
-    check_phone_number(user.contact)
+    handler = PhoneNumberValidator()
+    dict_user = {}
+    dict_user['phonenumber'] = user.contact
+
+    try:
+        handler.handle_request(dict_user)
+    except HTTPException as e:
+        raise e
 
     # Update the fields from user1 to current_user
     for key, value in user.model_dump().items():
