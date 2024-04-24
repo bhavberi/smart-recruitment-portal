@@ -8,14 +8,23 @@ from utils import (
     create_access_token,
     check_current_user,
     get_current_user,
-    check_phone_number,
-    validate_role,
     get_user_by_email,
     get_user_by_username,
     create_user,
     authenticate_user,
     update_user,
     update_user_password,
+)
+
+from validation import (
+    AbstractHandler,
+    EmailValidator,
+    EmailDuplicateValidator,
+    UsernameDuplicateValidator,
+    PhoneNumberValidator,
+    UsernameValidator,
+    RoleValidator,
+    PasswordValidator
 )
 
 router = APIRouter()
@@ -39,25 +48,10 @@ async def register(
         return {"username": user.username, "role": user.role}
 
     user.email = user.email.lower()
-
-    # Check if user already exists
-    if get_user_by_username(user.username):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Username already registered"
-        )
-    if get_user_by_email(user.email):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
-        )
-
-    if bool(re.match("^[a-zA-Z0-9]*$", user.username)) is False:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username should only contain alphanumeric characters",
-        )
-
-    check_phone_number(user.contact)
-    validate_role(user.role)
+    handler = EmailValidator()
+    handler.escalate_request(EmailDuplicateValidator()).escalate_request(UsernameValidator()).escalate_request(UsernameDuplicateValidator()).escalate_request(PhoneNumberValidator()).escalate_request(RoleValidator()).escalate_request(PasswordValidator())
+    dict_user = user.model_dump()
+    handler.handle_request(dict_user)
 
     # Create User and Set Session
     create_user(user.model_dump())
@@ -152,8 +146,17 @@ async def edit(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
         )
+    
+    # Check if user username already exists
+    if user.username != current_user.username and get_user_by_username(user.username):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail="Username already registered"
+        )
 
-    check_phone_number(user.contact)
+    handler = PhoneNumberValidator()
+    dict_user = {}
+    dict_user['contact'] = user.contact
+    handler.handle_request(dict_user)
 
     # Update the fields from user1 to current_user
     for key, value in user.model_dump().items():
