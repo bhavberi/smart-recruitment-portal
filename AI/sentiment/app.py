@@ -55,7 +55,7 @@ misogyny_pipeline = pipeline(
 )
 
 
-@app.route('/sentiment/<name>', methods=['GET'])
+@app.route('/<name>', methods=['GET'])
 def calculate_score(name):
     input = collection[name]
     sentiment = sentiment_pipeline(input, return_all_scores=True)
