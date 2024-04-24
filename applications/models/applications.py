@@ -16,4 +16,4 @@ class Report(BaseModel):
     llama: str
     mbti: str
     sentiment: str
-    report_gen: str
+    skills: str

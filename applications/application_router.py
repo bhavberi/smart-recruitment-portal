@@ -120,22 +120,26 @@ async def get_report(
     request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"]}
     handler.handle_request(request)
 
-    url = "/api/AI/llama"
+    application = get_user_application(
+        userapplication.username, userapplication.listing
+    )
+
+    url = f"/api/llama/{application['twitter_id'].split('/')[-1]}"
     llama = get_ai_response(url)
 
-    url = "/api/AI/mbti"
+    url = "/api/mbti"
     mbti = get_ai_response(url)
 
-    url = "/api/AI/report_gen"
-    report_gen = get_ai_response(url)
-
-    url = "/api/AI/sentiment"
+    url = "/api/sentiment"
     sentiment = get_ai_response(url)
+
+    url = ""
+    skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
 
     report_director = ReportDirector()
     report_director.builder = FullReportBuilder()
     return report_director.build_full_report(
-        userapplication.username, llama, mbti, report_gen, sentiment
+        userapplication.username, llama, mbti, sentiment
     )
 
 # approve the application
