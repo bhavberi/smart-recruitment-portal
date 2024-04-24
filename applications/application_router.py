@@ -13,6 +13,7 @@ from models.applications_otypes import (
 )
 from utils import (
     create_listing,
+    delete_listing,
     create_application,
     get_user_application,
     approve_application,
@@ -59,6 +60,23 @@ async def make_listing(
     create_listing(listing.model_dump())
 
     return {"name": listing.name}
+
+# delete listing
+@router.delete("/delete_listing", status_code=status.HTTP_200_OK)
+async def delete_listing(
+    listing: Listing,
+    user=Depends(get_user),
+):
+    
+        handler = AdminValidator()
+        handler.escalate_request(ExistingListingValidator())
+        request = {"listing": listing.name, "role": user["role"]}
+        handler.handle_request(request)
+    
+        # delete listing
+        delete_listing(listing.name)
+    
+        return {"name": listing.name}
 
 
 # Get all the listings
