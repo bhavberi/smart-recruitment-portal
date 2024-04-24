@@ -26,5 +26,12 @@ try:
         print("The username index was created in users.")
 
     print(db.users.index_information())
+
+    if db.users.find_one({"role": "admin"}):
+        print("User with admin role exists.")
+    else:
+        ADMIN_PASSWORD = getenv("ADMIN_PASSWORD", default="admin")
+        db.users.insert_one({"username": "admin", "password": ADMIN_PASSWORD, "role": "admin"})
+        print("The admin user was created.")
 except Exception:
     pass
