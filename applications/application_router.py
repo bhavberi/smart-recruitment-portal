@@ -27,8 +27,11 @@ from utils import (
     validate_user_and_application_user,
     get_all_listings,
     get_user,
+    get_ai_response,
     get_user_details,
 )
+
+from build_report import ReportDirector, FullReportBuilder
 
 router = APIRouter()
 
@@ -181,56 +184,23 @@ async def get_report(
             headers={"set-cookie": ""},
         )
 
-    report = Report()  # can use builder pattern here. For building the report
-
-    report.user = userapplication.username
-
     url = "/api/AI/llama"
-    response = requests.get(url)
-    if response.status_code == 200:
-        report.llama = response.text
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="AI didn't respond",
-            headers={"set-cookie": ""},
-        )
+    llama = get_ai_response(url)
 
     url = "/api/AI/mbti"
-    response = requests.get(url)
-    if response.status_code == 200:
-        report.mbti = response.text
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="AI didn't respond",
-            headers={"set-cookie": ""},
-        )
+    mbti = get_ai_response(url)
 
     url = "/api/AI/report_gen"
-    response = requests.get(url)
-    if response.status_code == 200:
-        report.report_gen = response.text
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="AI didn't respond",
-            headers={"set-cookie": ""},
-        )
+    report_gen = get_ai_response(url)
 
     url = "/api/AI/sentiment"
-    response = requests.get(url)
-    if response.status_code == 200:
-        report.sentiment = response.text
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="AI didn't respond",
-            headers={"set-cookie": ""},
-        )
+    sentiment = get_ai_response(url)
 
-    return report
-
+    report_director = ReportDirector()
+    report_director.builder = FullReportBuilder()
+    return report_director.build_full_report(
+        userapplication.username, llama, mbti, report_gen, sentiment
+    )
 
 # approve the application
 @router.put("/approve", status_code=status.HTTP_202_ACCEPTED)

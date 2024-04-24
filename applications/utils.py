@@ -110,3 +110,14 @@ def get_user_details(access_token_se_p3: str = Cookie(None)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Not logged in",
         )
+
+def get_ai_response(url: str):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.text
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="AI didn't respond",
+            headers={"set-cookie": ""},
+        )
