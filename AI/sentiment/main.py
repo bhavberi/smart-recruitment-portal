@@ -1,13 +1,15 @@
+from flask import Flask, jsonify, request
+from os import getenv
+
 import pandas as pd
 from transformers import pipeline
-import copy
 import re
-import numpy as np
-import pickle
-import sklearn
-from sklearn.feature_extraction.text import TfidfVectorizer
-from tqdm import tqdm
-from flask import Flask, jsonify, request
+
+DEBUG = getenv("DEBUG", "False").lower() in ("true", "1", "t")
+SECRET_KEY = getenv("SECRET_KEY", "secret-key")
+
+app = Flask(__name__)
+app.secret_key = SECRET_KEY
 
 
 pd.set_option("display.max_colwidth", None)
@@ -51,8 +53,6 @@ misogyny_pipeline = pipeline(
     "text-classification",
     model="NLP-LTU/bertweet-large-sexism-detector",
 )
-
-app = Flask(__name__)
 
 
 @app.route('/sentiment/<name>', methods=['GET'])

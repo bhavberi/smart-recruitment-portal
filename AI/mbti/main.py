@@ -1,3 +1,6 @@
+from flask import Flask
+from os import getenv
+
 from sklearn.model_selection import train_test_split
 import re
 from nltk.corpus import stopwords
@@ -13,8 +16,6 @@ from tqdm import tqdm
 import nltk
 from nltk.stem import WordNetLemmatizer
 
-from flask import Flask, jsonify, request
-
 
 nltk.download('wordnet', download_dir='./datasets')
 
@@ -23,6 +24,11 @@ nltk.download('stopwords', download_dir='./datasets')
 
 nltk.data.path.append('./datasets')
 
+DEBUG = getenv("DEBUG", "False").lower() in ("true", "1", "t")
+SECRET_KEY = getenv("SECRET_KEY", "secret-key")
+
+app = Flask(__name__)
+app.secret_key = SECRET_KEY
 
 class Lemmatizer(object):
     def __init__(self):
@@ -209,9 +215,6 @@ def remove_pattern(input_txt, pattern):
     for i in r:
         input_txt = re.sub(i, "", input_txt)
     return input_txt
-
-
-app = Flask(__name__)
 
 
 model = load('./mbti/mbti_model.joblib')
