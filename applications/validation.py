@@ -223,7 +223,7 @@ class ExistingApplicationValidator(AbstractHandler):
         if not self.validate_user_application(request["user"], request["listing"]):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Application already exists",
+                detail="Application does not exist",
                 headers={"set-cookie": ""},
             )
         if self._next_handler is not None:
