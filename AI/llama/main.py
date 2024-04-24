@@ -1,10 +1,12 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request
+from os import getenv
 import replicate
-import os
 
+DEBUG = getenv("DEBUG", "False").lower() in ("true", "1", "t")
+SECRET_KEY = getenv("SECRET_KEY", "secret-key")
 
 app = Flask(__name__)
-
+app.secret_key = SECRET_KEY
 
 @app.route('/llama/<test>', methods=['GET'])
 def llama_call(test):
@@ -50,3 +52,6 @@ def llama_call(test):
         result.append(item)
     result = "".join(result)
     return result
+
+if __name__ == "__main__":
+    app.run(debug=DEBUG, host="0.0.0.0", port=80)
