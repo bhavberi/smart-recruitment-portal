@@ -53,6 +53,10 @@ misogyny_pipeline = pipeline(
     "text-classification",
     model="NLP-LTU/bertweet-large-sexism-detector",
 )
+model_path='transformers/'
+sentiment_pipeline.save_pretrained(model_path)
+hate_pipeline.save_pretrained(model_path)
+misogyny_pipeline.save_pretrained(model_path)
 
 
 @app.route('/<name>', methods=['GET'])
