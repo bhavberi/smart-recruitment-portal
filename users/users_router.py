@@ -50,17 +50,8 @@ async def register(
     user.email = user.email.lower()
 
     handler = EmailValidator().set_next_handler(EmailDuplicateValidator().set_next_handler(UsernameValidator().set_next_handler(UsernameDuplicateValidator().set_next_handler(PhoneNumberValidator().set_next_handler(RoleValidator().set_next_handler(PasswordValidator()))))))
-    dict_user = {}
-    dict_user['email'] = user.email
-    dict_user['username'] = user.username
-    dict_user['phonenumber'] = user.contact
-    dict_user['role'] = user.role
-    dict_user['password'] = user.password
-
-    try:
-        handler.handle_request(dict_user)
-    except HTTPException as e:
-        raise e
+    dict_user = user.model_dump()
+    handler.handle_request(dict_user)
 
     # Create User and Set Session
     create_user(user.model_dump())
@@ -164,12 +155,8 @@ async def edit(
 
     handler = PhoneNumberValidator()
     dict_user = {}
-    dict_user['phonenumber'] = user.contact
-
-    try:
-        handler.handle_request(dict_user)
-    except HTTPException as e:
-        raise e
+    dict_user['contact'] = user.contact
+    handler.handle_request(dict_user)
 
     # Update the fields from user1 to current_user
     for key, value in user.model_dump().items():
