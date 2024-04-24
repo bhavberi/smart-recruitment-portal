@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from os import getenv
 
 import pandas as pd
@@ -112,3 +112,6 @@ def calculate_score(name):
     # print(type(sums / len(user_data)))
     # print(sums / len(user_data))
     return jsonify((sums / len(user_data)).to_dict(), controversial)
+
+if __name__ == "__main__":
+    app.run(debug=DEBUG, host="0.0.0.0", port=80)

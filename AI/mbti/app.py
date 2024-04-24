@@ -229,7 +229,7 @@ df = pd.read_csv(
 df.columns = ["target", "ids", "date", "flag", "user", "text"]
 
 
-@app.route('/mbti/<name>', methods=['GET'])
+@app.route('/<name>', methods=['GET'])
 def main(name):
     # import os
     # os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -283,5 +283,5 @@ def main(name):
     return out
 
 
-# if __name__ == '__main__':
-#     print(main())
+if __name__ == "__main__":
+    app.run(debug=DEBUG, host="0.0.0.0", port=80)

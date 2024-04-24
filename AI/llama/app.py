@@ -8,9 +8,9 @@ SECRET_KEY = getenv("SECRET_KEY", "secret-key")
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
 
-@app.route('/llama/<test>', methods=['GET'])
+@app.route('/<test>', methods=['GET'])
 def llama_call(test):
-    if test == "mbit":
+    if test == "mbti":
         mbit = request.args.get('mbit')
         promt = (
             "Give pros and cons for a job applicant with the personality type "
