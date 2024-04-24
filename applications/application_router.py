@@ -142,16 +142,12 @@ async def get_report(
         userapplication.username, userapplication.listing
     )
 
-    url = f"/api/llama/{application['twitter_id'].split('/')[-1]}"
-    llama = get_ai_response(url)
+    mbti = get_ai_response(f"/api/mbti/{application['twitter_id'].split('/')[-1]}")
 
-    url = "/api/mbti"
-    mbti = get_ai_response(url)
+    llama = get_ai_response(f"/api/llama/{mbti}")
 
-    url = "/api/sentiment"
-    sentiment = get_ai_response(url)
+    sentiment = get_ai_response(f"/api/sentiment/{application['twitter_id'].split('/')[-1]}")
 
-    url = ""
     skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
 
     report_director = ReportDirector()

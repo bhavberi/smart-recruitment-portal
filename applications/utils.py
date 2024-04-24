@@ -66,13 +66,12 @@ def get_user_details(access_token_se_p3: str = Cookie(None)):
             detail="Not logged in",
         )
 
-def get_ai_response(url: str):
-    response = requests.get(url)
+def get_ai_response(url: str, access_token_se_p3: str = Cookie(None)):
+    response = requests.get(url, cookies={"access_token_se_p3": access_token_se_p3})
     if response.status_code == 200:
-        return response.text
+        return response.json()
     else:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="AI didn't respond",
-            headers={"set-cookie": ""},
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Report generation Failed!",
         )
