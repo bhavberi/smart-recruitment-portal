@@ -50,7 +50,8 @@ async def make_listing(
     user=Depends(get_user),
 ):
     
-    handler = AdminValidator().escalate_request(ListingValidator())
+    handler = AdminValidator()
+    handler.escalate_request(ListingValidator())
     request = {"listing": listing.name, "role": user["role"]}
     handler.handle_request(request)
 
@@ -76,13 +77,8 @@ async def apply(
     user=Depends(get_user),
 ):
 
-    handler = SelfUserValidator().escalate_request(
-                CandidateValidator().escalate_request(
-                ExistingListingValidator().escalate_request(
-                NoApplicationValidator().escalate_request(
-                TwitterLinkValidator().escalate_request(
-                LinkedinLinkValidator()
-                )))))
+    handler = SelfUserValidator()
+    handler.escalate_request(CandidateValidator()).escalate_request(ExistingListingValidator()).escalate_request(NoApplicationValidator()).escalate_request(TwitterLinkValidator()).escalate_request(LinkedinLinkValidator())
     request = {"user": application.user,
                "current_user": user["username"],
                "role": user["role"],
@@ -104,7 +100,8 @@ async def get_applications(
     user=Depends(get_user),
 ):
     
-    handler = RecruiterValidator().escalate_request(ExistingListingValidator())
+    handler = RecruiterValidator()
+    handler.escalate_request(ExistingListingValidator())
     request = {"listing": listing.name, "role": user["role"]}
     handler.handle_request(request)
 
@@ -118,7 +115,8 @@ async def get_report(
     user=Depends(get_user),
 ):
 
-    handler = RecruiterValidator().escalate_request(ExistingApplicationValidator())
+    handler = RecruiterValidator()
+    handler.escalate_request(ExistingApplicationValidator())
     request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"]}
     handler.handle_request(request)
 
@@ -147,7 +145,8 @@ async def approve(
     user=Depends(get_user),
 ):
 
-    handler = RecruiterValidator().escalate_request(ExistingApplicationValidator())
+    handler = RecruiterValidator()
+    handler.escalate_request(ExistingApplicationValidator())
     request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"]}
     handler.handle_request(request)
 
@@ -173,7 +172,8 @@ def get_application_status(
     user=Depends(get_user),
 ):
     
-    handler = CandidateValidator().escalate_request(SelfUserValidator().escalate_request(ExistingApplicationValidator()))
+    handler = CandidateValidator()
+    handler.escalate_request(SelfUserValidator()).escalate_request(ExistingApplicationValidator())
     request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"], "current_user": user["username"]}
     handler.handle_request(request)
 

@@ -48,8 +48,8 @@ async def register(
         return {"username": user.username, "role": user.role}
 
     user.email = user.email.lower()
-
-    handler = EmailValidator().set_next_handler(EmailDuplicateValidator().set_next_handler(UsernameValidator().set_next_handler(UsernameDuplicateValidator().set_next_handler(PhoneNumberValidator().set_next_handler(RoleValidator().set_next_handler(PasswordValidator()))))))
+    handler = EmailValidator()
+    handler.escalate_request(EmailDuplicateValidator()).escalate_request(UsernameValidator()).escalate_request(UsernameDuplicateValidator()).escalate_request(PhoneNumberValidator()).escalate_request(RoleValidator()).escalate_request(PasswordValidator())
     dict_user = user.model_dump()
     handler.handle_request(dict_user)
 
