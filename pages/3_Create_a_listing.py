@@ -31,7 +31,7 @@ if st.session_state["logged_in_user"] is None:
     st.stop()
     
 # add verification for type of user
-if st.session_state["logged_in_role"] not in ["recruiter", "admin"]:
+if st.session_state["logged_in_role"] not in ["admin"]:
     st.warning("You need to be a recruiter to create a listing.")
     st.stop()
     
@@ -40,7 +40,7 @@ submit = st.button("Submit")
 
 if submit:
     
-    url = "http://localhost/api/applications/make_listing"
+    url = "http://localhost/api/listings/make_listing"
     
     # sending the data as form data
     payload = {"name": listing_name}

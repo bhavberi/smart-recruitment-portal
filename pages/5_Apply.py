@@ -30,6 +30,10 @@ if st.session_state["logged_in_user"] is None:
     st.warning("You need to login first.")
     st.stop()
 
+if st.session_state["logged_in_role"] not in ["candidate"]:
+    st.warning("You need to be a candidate to apply.")
+    st.stop()
+    
 params = {"Listing Name": "", "Twitter ID": "", "LinkedIn ID": ""}
 
 for param in params:
@@ -55,7 +59,6 @@ if submit:
         url, data=payload, headers=headers, cookies=get_all_cookies()
     )
 
-    # st.write(response.status_code)
     if response.status_code not in [200, 201]:
         st.write(json.loads(response.text)["detail"])
 

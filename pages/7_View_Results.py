@@ -57,7 +57,8 @@ if submit:
     status = json.loads(response.text)["status"]
 
     if status is not None:
-        st.write(f"Application was {'accepted!' if status else 'rejected :('}")
+        if status:
+            st.success("Congratulations! Your application was accepted.")
 
     else:
         st.write("Application not reviewed yet.")

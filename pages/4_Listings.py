@@ -33,15 +33,17 @@ if st.session_state["logged_in_user"] is None:
     
 # add verification for type of user
 
-url = "http://localhost/api/applications/get_Listings"
+url = "http://localhost/api/listings/get_listings"
 
 headers = {"Content-Type": "application/json"}
 response = requests.get(url, headers=headers, cookies=get_all_cookies())
 
-# st.write(response.text)
-
 listings = json.loads(response.text)['listings']
 listings = [listing['name'] for listing in listings]
 
-for listing in listings:
-    st.write(f"{listing}")
+if listings:
+    for listing in listings:
+        st.write(f"{listing}")
+        
+else:
+    st.write("No listings available.")
