@@ -1,4 +1,4 @@
-# Decision record template for Alexandrian pattern
+# Decision record template for Microservices architecture
 ## Introduction
 1. Prologue (Summary)
 2. Discussion (Context)
