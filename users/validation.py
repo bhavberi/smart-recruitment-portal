@@ -91,21 +91,24 @@ class PhoneNumberValidator(AbstractHandler):
     """
     
     def handle_request(self, request):
+        flag=False
         try:
             contact = phonenumbers.parse(request['contact'], "IN")
             if not phonenumbers.is_valid_number(contact):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid phone number"
-                )
+                flag=True
         except phonenumbers.phonenumberutil.NumberParseException:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid phone number"
-            )
+            flag=True
         except Exception:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An Error Occured!",
             )
+        
+        if flag:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid phone number"
+            )
+        
         if self._next_handler is not None:
             return self._next_handler.handle_request(request)
         else:
