@@ -70,3 +70,5 @@ if submit:
         
         st.session_state["logged_in_user"] = username
         st.session_state["logged_in_role"] = json.loads(response.content)["role"]
+        st.session_state['report_data'] = None
+        

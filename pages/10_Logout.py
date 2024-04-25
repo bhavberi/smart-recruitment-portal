@@ -55,7 +55,7 @@ if submit:
         st.write(json.loads(response.text))
         
     else:
-        st.write(f"Successfully logged out!") 
+        st.success(f"Successfully logged out!") 
         
         st.session_state["logged_in_user"] = None
         st.session_state["logged_in_role"] = None
