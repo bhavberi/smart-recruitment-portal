@@ -91,10 +91,9 @@ async def get_applications(
 ):
     if (user["role"] == "candidate"):
         context = Context(Candidate_listing())
-        context.execute_strategy()
     elif (user["role"] == "recruiter"):
         context = Context(Recruiter_listing())
-        context.execute_strategy()
+    context.execute_strategy()
     # handler = RecruiterValidator()
     # handler.escalate_request(ExistingListingValidator())
     # request = {"listing": listing.name, "role": user["role"]}
