@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
+import requests
 from os import getenv
 
 from models.applications import Report, Listing, Status
@@ -94,14 +95,6 @@ async def get_applications(
     elif (user["role"] == "recruiter"):
         context = Context(Recruiter_listing(listing, user))
     return context.execute_strategy()
-    # handler = RecruiterValidator()
-    # handler.escalate_request(ExistingListingValidator())
-    # request = {"listing": listing.name, "role": user["role"]}
-    # handler.handle_request(request)
-
-    # return Applications(applications=get_all_applications(listing.name))
-
-    # get the report for an application
 
 
 @router.post("/get_report", status_code=status.HTTP_200_OK, response_model=Report)
@@ -126,9 +119,10 @@ async def get_report(
         f"http://llama/{llama_input}", {"secret": INTER_COMMUNICATION_SECRET})["result"]
     sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {
                           "secret": INTER_COMMUNICATION_SECRET})
-    # skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
+    skills = requests.get(
+        f"http://10.2.130.84:8080/skills/http://linkedin.com/in/{application['linkedin_id']}").text
 
-    skills = "Damn good at coding!"
+    # skills = "Damn good at coding!"
 
     report_director = ReportDirector()
     report_director.builder = FullReportBuilder()
