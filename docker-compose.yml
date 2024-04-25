@@ -1,0 +1,31 @@
+version: '3.8'
+
+volumes:
+  mongo_data:
+
+
+services:
+  mongo:
+    image: mongo:7.0.8
+    command: mongod --port 25235
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - 25235:25235
+    env_file:
+      - ./.env
+    restart: unless-stopped
+
+  server:
+    build: ./server
+    env_file:
+      - ./.env
+    ports:
+      - 8000:8000
+    volumes:
+      - ./server:/app
+    depends_on:
+      - mongo
+    environment:
+      - HUGGINGFACE_HUB_CACHE=/app/.cache/huggingface
+    
