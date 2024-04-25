@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Cookie
 from os import getenv
 
 from models.listings import Listing
@@ -42,13 +42,14 @@ async def make_listing(
 
 
 # Get Listing
-@router.post(
-    "/get_listing", status_code=status.HTTP_200_OK, response_model=ListingResponse
+@router.get(
+    "/get_listing", status_code=status.HTTP_200_OK
 )
 async def get_listing(
-    listing: Listing,
+    listing: str,
     secret: str | None = None
 ):
+    print(listing, secret)
     if secret != INTER_COMMUNICATION_SECRET:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -56,10 +57,10 @@ async def get_listing(
         )
     
     handler = ExistingListingValidator()
-    request = {"listing": listing.name}
+    request = {"listing": listing}
     handler.handle_request(request)
 
-    return {"name": listing.name}
+    return {"name": listing}
 
 
 # delete listing
@@ -67,6 +68,7 @@ async def get_listing(
 async def delete_listing(
     listing: Listing,
     user=Depends(get_user),
+    access_token_se_p3: str = Cookie(None),
 ):
     handler = AdminValidator()
     handler.escalate_request(ExistingListingValidator())
@@ -74,7 +76,7 @@ async def delete_listing(
     handler.handle_request(request)
 
     # delete listing
-    remove_listing(listing.name)
+    remove_listing(listing.name, access_token_se_p3)
 
     return {"name": listing.name}
 

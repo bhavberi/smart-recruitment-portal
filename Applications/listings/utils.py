@@ -9,8 +9,8 @@ def create_listing(listing: dict):
     return str(result.inserted_id)
 
 
-def remove_listing(name: str):
-    get_fast_reply("http://applications/remove_applications", {"name": name})
+def remove_listing(name: str, token):
+    get_fast_reply("http://applications/remove_applications", {"listing": name}, token)
     result = db.listings.delete_one({"name": name})
     return result
 
@@ -44,9 +44,9 @@ def get_user_details(access_token_se_p3: str = Cookie(None)):
         )
 
 
-def get_fast_reply(url: str, payload, access_token_se_p3: str = Cookie(None)):
+def get_fast_reply(url: str, payload, access_token_se_p3: str):
     response = requests.post(
-        url, data=payload, cookies={"access_token_se_p3": access_token_se_p3}
+        url, params=payload, cookies={"access_token_se_p3": access_token_se_p3}
     )
     if response.status_code == 200:
         return response.json()

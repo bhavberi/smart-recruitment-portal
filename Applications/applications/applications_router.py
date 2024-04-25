@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 import requests
+from os import getenv
 
 from models.applications import Report, Listing
 from models.applications_otypes import (
@@ -38,20 +39,20 @@ router = APIRouter()
 INTER_COMMUNICATION_SECRET = getenv("INTER_COMMUNICATION_SECRET", "inter-communication-secret")
 
 # delete applications
-@router.delete("/delete_applications", status_code=status.HTTP_200_OK)
+@router.post("/remove_applications", status_code=status.HTTP_200_OK)
 async def delete_listing(
-    listing: Listing,
+    listing: str,
     user=Depends(get_user),
 ):
-    
-        handler = AdminValidator()
-        request = {"role": user["role"]}
-        handler.handle_request(request)
-    
-        # delete applications from a listing
-        delete_applications(listing.name)
-    
-        return {"name": listing.name}
+    print(listing)
+    handler = AdminValidator()
+    request = {"role": user["role"]}
+    handler.handle_request(request)
+
+    # delete applications from a listing
+    delete_applications(listing)
+
+    return {"name": listing}
 
 # apply for job
 @router.post("/apply", status_code=status.HTTP_201_CREATED, response_model=ApplicationResponse)

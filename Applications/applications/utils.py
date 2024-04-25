@@ -11,7 +11,7 @@ def delete_applications(name: str):
 
 def create_application(application: dict):
     # application["accepted"] = False
-    application_built = Application(**application)
+    application_built = Application(**application).model_dump()
     result = db.applications.insert_one(application_built)
     return str(result.inserted_id)
 
@@ -56,7 +56,7 @@ def get_user_details(access_token_se_p3: str = Cookie(None)):
         )
     
 def get_reply(url: str, payload):
-    response = requests.post(url, data=payload)
+    response = requests.get(url, params=payload)
     if response.status_code == 200:
         return response.json()
     else:
