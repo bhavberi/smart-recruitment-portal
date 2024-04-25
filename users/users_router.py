@@ -144,6 +144,8 @@ async def edit(
     dict_user = {}
     dict_user['contact'] = user.contact
     handler.handle_request(dict_user)
+    
+    current_user = get_user_by_username(current_user.username)
 
     # Update the fields from user1 to current_user
     for key, value in user.model_dump().items():
