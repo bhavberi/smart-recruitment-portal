@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from os import getenv
 
 import pandas as pd
@@ -7,6 +7,8 @@ import re
 
 DEBUG = getenv("DEBUG", "False").lower() in ("true", "1", "t")
 SECRET_KEY = getenv("SECRET_KEY", "secret-key")
+INTER_COMMUNICATION_SECRET = getenv(
+    "INTER_COMMUNICATION_SECRET", "inter-communication-secret")
 
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
@@ -57,6 +59,8 @@ misogyny_pipeline = pipeline(
 
 @app.route('/<name>', methods=['GET'])
 def calculate_score(name):
+    if request.get_json()['secret'] != INTER_COMMUNICATION_SECRET:
+        return "Unauthorized", 401
     input = collection[name]
     sentiment = sentiment_pipeline(input, return_all_scores=True)
     hate = hate_pipeline(input, return_all_scores=True)
@@ -107,11 +111,8 @@ def calculate_score(name):
 
     user_data.to_csv("sentiment_data.csv", sep=",",
                      index=False, encoding="utf-8")
-    # print(controversial)
-    # print("type:", type(controversial))
-    # print(type(sums / len(user_data)))
-    # print(sums / len(user_data))
-    return jsonify((sums / len(user_data)).to_dict(), controversial)
+    return str(((sums / len(user_data)).to_dict(), controversial))
+
 
 if __name__ == "__main__":
     app.run(debug=DEBUG, host="0.0.0.0", port=80)

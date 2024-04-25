@@ -46,7 +46,6 @@ services:
         depends_on:
             - mongo_applications
 
-
     # AI Services
     llama:
         build:
@@ -74,6 +73,8 @@ services:
         volumes:
             - ./AI/sentiment:/app
         tty: true
+        environment:
+            - HUGGINGFACE_HUB_CACHE=/app/.cache/huggingface
 
     nginx:
         build: ./nginx/
