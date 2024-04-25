@@ -15,6 +15,12 @@ def create_application(application: dict):
     result = db.applications.insert_one(application_built)
     return str(result.inserted_id)
 
+def update_status_application(username: str, listing: str, status: str):
+    result = db.applications.update_one(
+        {"user": username, "listing": listing}, {"$set": {"status": status}}
+    )
+    return result
+
 
 def get_user_application(username: str, listing: str):
     application = db.applications.find_one(
@@ -30,13 +36,6 @@ def get_all_applications(name: str):
 def get_all_user_applications(name: str, username: str):
     applications = db.applications.find({"listing": name, "user": username})
     return applications
-
-
-def approve_application(username: str, listing: str):
-    result = db.applications.update_one(
-        {"user": username, "listing": listing}, {"$set": {"status": status}}
-    )
-    return result
 
 
 def get_user(access_token_se_p3: str = Cookie(None)):
