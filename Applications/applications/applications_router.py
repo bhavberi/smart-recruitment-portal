@@ -39,6 +39,7 @@ router = APIRouter()
 
 INTER_COMMUNICATION_SECRET = getenv(
     "INTER_COMMUNICATION_SECRET", "inter-communication-secret")
+LINKEDIN_API_URL = getenv("LINKEDIN_API_URL", "http://10.2.130.84:8080")
 
 # delete applications
 
@@ -120,7 +121,7 @@ async def get_report(
     sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {
                           "secret": INTER_COMMUNICATION_SECRET})
     skills = requests.get(
-        f"http://10.2.130.84:8080/skills/http://linkedin.com/in/{application['linkedin_id']}").text
+        f"{LINKEDIN_API_URL}/skills/{application['linkedin_id']}").text
 
     # skills = "Damn good at coding!"
 
