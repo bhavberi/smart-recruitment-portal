@@ -1,7 +1,7 @@
 from flask import Flask
 from os import getenv, system
 import json
-import regex as re
+import re
 
 DEBUG = getenv("DEBUG", "False").lower() in ("true", "1", "t")
 SECRET_KEY = getenv("SECRET_KEY", "secret-key")

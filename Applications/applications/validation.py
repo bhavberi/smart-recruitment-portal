@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from fastapi import HTTPException, status
 import re
+from os import getenv
 
 from db import db
-from utils import get_user_application
+from utils import get_user_application, get_reply
+
+INTER_COMMUNICATION_SECRET = getenv("INTER_COMMUNICATION_SECRET", "inter-communication-secret")
 
 class AbstractHandler(ABC):
     """
@@ -35,29 +38,6 @@ class AdminValidator(AbstractHandler):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Not An Admin",
-                headers={"set-cookie": ""},
-            )
-        if self._next_handler is not None:
-            return self._next_handler.handle_request(request)
-        return True
-
-class ListingValidator(AbstractHandler):
-    """
-    The Concrete Handler for listing validation
-    """
-
-    def validate_listing(self, name: str):
-        listing = db.listings.find_one({"name": name})
-        if listing:
-            return True
-        else:
-            return False
-    
-    def handle_request(self, request):
-        if self.validate_listing(request["listing"]):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Listing already exists",
                 headers={"set-cookie": ""},
             )
         if self._next_handler is not None:
@@ -107,7 +87,11 @@ class ExistingListingValidator(AbstractHandler):
     """
 
     def validate_listing(self, name: str):
-        listing = db.listings.find_one({"name": name})
+        payload = {
+            "listing": name,
+            "secret": INTER_COMMUNICATION_SECRET
+        }
+        listing = get_reply(f"http://listings/get_listing", payload)
         if listing:
             return True
         else:
