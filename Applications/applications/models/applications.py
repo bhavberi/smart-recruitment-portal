@@ -1,4 +1,10 @@
 from pydantic import BaseModel
+from enum import Enum
+
+class Status(str, Enum):
+    accepted = "accepted"
+    rejected = "rejected"
+    pending = "pending"
 
 
 class Listing(BaseModel):
@@ -8,7 +14,7 @@ class Listing(BaseModel):
 class Application(BaseModel):
     user: str
     listing: str
-    accepted: bool = False
+    status: Status = Status.pending
     twitter_id: str
     linkedin_id: str
 

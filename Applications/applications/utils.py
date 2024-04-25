@@ -10,7 +10,6 @@ def delete_applications(name: str):
 
 
 def create_application(application: dict):
-    # application["accepted"] = False
     application_built = Application(**application).model_dump()
     result = db.applications.insert_one(application_built)
     return str(result.inserted_id)
@@ -25,9 +24,9 @@ def get_all_applications(name: str):
     applications = db.applications.find({"listing": name})
     return applications
 
-def approve_application(username: str, listing: str):
+def update_status_application(username: str, listing: str, status: str):
     result = db.applications.update_one(
-        {"user": username, "listing": listing}, {"$set": {"accepted": True}}
+        {"user": username, "listing": listing}, {"$set": {"status": status}}
     )
     return result
 
