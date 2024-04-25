@@ -14,7 +14,7 @@ class UserApplication(BaseModel):
 
 
 class Approval(BaseModel):
-    status: bool
+    status: str
 
 
 class Applications(BaseModel):
