@@ -227,6 +227,9 @@ def main(name):
         return "Unauthorized", 401
     # import os
     # os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    print("=====================================")
+    print("HELLLOOOOOO")
+    print("=====================================")
     wordnet.synsets("hello")
 
     f = df[df.iloc[:, 4].isin(df.iloc[:, 4].value_counts().index[:200])]

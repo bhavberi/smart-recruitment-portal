@@ -1,31 +1,27 @@
-from fastapi import APIRouter, HTTPException, Depends, Response, Request, status
+from fastapi import APIRouter, HTTPException, Depends, status
 import requests
+from os import getenv
 
-from models.applications import Listing, Report
+from models.applications import Report, Listing
 from models.applications_otypes import (
-    ListingResponse,
     ApplicationResponse,
     UserApplication,
     Approval,
     Applications,
     ApplicationInput,
-    Listings,
 )
 from utils import (
-    create_listing,
+    delete_applications,
     create_application,
     get_user_application,
     approve_application,
     get_all_applications,
-    get_all_listings,
     get_user,
-    get_ai_response,
-    get_user_details,
+    get_reply,
 )
 
 from validation import (
     AdminValidator,
-    ListingValidator,
     SelfUserValidator,
     CandidateValidator,
     ExistingListingValidator,
@@ -40,35 +36,23 @@ from build_report import ReportDirector, FullReportBuilder
 
 router = APIRouter()
 
+INTER_COMMUNICATION_SECRET = getenv("INTER_COMMUNICATION_SECRET", "inter-communication-secret")
 
-# make listing
-@router.post(
-    "/make_listing", status_code=status.HTTP_201_CREATED, response_model=ListingResponse
-)
-async def make_listing(
-    listing: Listing,
+# delete applications
+@router.post("/remove_applications", status_code=status.HTTP_200_OK)
+async def delete_listing(
+    listing: str,
     user=Depends(get_user),
 ):
-    
+    print(listing)
     handler = AdminValidator()
-    handler.escalate_request(ListingValidator())
-    request = {"listing": listing.name, "role": user["role"]}
+    request = {"role": user["role"]}
     handler.handle_request(request)
 
-    # create listing
-    create_listing(listing.model_dump())
+    # delete applications from a listing
+    delete_applications(listing)
 
-    return {"name": listing.name}
-
-
-# Get all the listings
-@router.get("/get_Listings", status_code=status.HTTP_200_OK, response_model=Listings)
-async def get_listings(
-    user=Depends(get_user),
-):
-
-    return Listings(listings = get_all_listings())
-
+    return {"name": listing}
 
 # apply for job
 @router.post("/apply", status_code=status.HTTP_201_CREATED, response_model=ApplicationResponse)
@@ -115,27 +99,27 @@ async def get_report(
     user=Depends(get_user),
 ):
 
+    print(userapplication)
     handler = RecruiterValidator()
     handler.escalate_request(ExistingApplicationValidator())
     request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"]}
     handler.handle_request(request)
 
-    url = "/api/AI/llama"
-    llama = get_ai_response(url)
+    application = get_user_application(
+        userapplication.username, userapplication.listing
+    )
 
-    url = "/api/AI/mbti"
-    mbti = get_ai_response(url)
+    mbti = get_reply(f"http://mbti/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
+    llama = get_reply(f"http://llama/{mbti}", {"secret": INTER_COMMUNICATION_SECRET})
+    sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
+    skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
 
-    url = "/api/AI/report_gen"
-    report_gen = get_ai_response(url)
-
-    url = "/api/AI/sentiment"
-    sentiment = get_ai_response(url)
+    skills = "Damn good at coding!"
 
     report_director = ReportDirector()
     report_director.builder = FullReportBuilder()
     return report_director.build_full_report(
-        userapplication.username, llama, mbti, report_gen, sentiment
+        userapplication.username, llama, mbti, sentiment, skills
     )
 
 # approve the application
@@ -154,7 +138,7 @@ async def approve(
         userapplication.username, userapplication.listing
     )
 
-    if not application["accepted"] == True:
+    if application["accepted"] is False:
         result = approve_application(userapplication.username, userapplication.listing)
         if not result.modified_count:
             raise HTTPException(

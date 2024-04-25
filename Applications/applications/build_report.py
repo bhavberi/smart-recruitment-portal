@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
 from models.applications import Report
 
+
 class AbstractReportBuilder(ABC):
     """
     Abstract class for building reports
     """
-    
+
     @property
     @abstractmethod
     def report(self) -> None:
@@ -24,21 +25,22 @@ class AbstractReportBuilder(ABC):
         pass
 
     @abstractmethod
-    def build_report_gen(self, report_gen: str) -> None:
+    def build_skills(self, skills: str) -> None:
         pass
 
     @abstractmethod
     def build_sentiment(self, sentiment: str) -> None:
         pass
 
+
 class FullReportBuilder(AbstractReportBuilder):
     """
     Concrete class for building full reports
     """
-    
+
     def __init__(self) -> None:
         self.reset()
-    
+
     def reset(self) -> None:
         self._report = Report()
 
@@ -57,22 +59,23 @@ class FullReportBuilder(AbstractReportBuilder):
     def build_mbti(self, mbti: str) -> None:
         self._report.mbti = mbti
 
-    def build_report_gen(self, report_gen: str) -> None:
-        self._report.report_gen = report_gen
+    def build_skills(self, skills: str) -> None:
+        self._report.skills = skills
 
     def build_sentiment(self, sentiment: str) -> None:
         self._report.sentiment = sentiment
+
 
 class ReportDirector:
     """
     Director class for building reports
     """
-    
+
     def __init__(self) -> None:
         self._builder = None
 
     @property
-    def builder(self) -> AbstractReportBuilder:
+    def builder(self) -> AbstractReportBuilder | None:
         return self._builder
 
     @builder.setter
@@ -82,10 +85,14 @@ class ReportDirector:
         """
         self._builder = builder
 
-    def build_full_report(self, user: str, llama: str, mbti: str, report_gen: str, sentiment: str) -> None:
-        self.builder.build_user(user)
-        self.builder.build_llama(llama)
-        self.builder.build_mbti(mbti)
-        self.builder.build_report_gen(report_gen)
-        self.builder.build_sentiment(sentiment)
-        return self._builder.report
+    def build_full_report(
+        self, user: str, llama: str, mbti: str, sentiment: str, skills: str
+    ) -> None:
+        if self.builder is not None:
+            self.builder.build_user(user)
+            self.builder.build_llama(llama)
+            self.builder.build_mbti(mbti)
+            self.builder.build_skills(skills)
+            self.builder.build_sentiment(sentiment)
+            return self.builder.report
+        return None
