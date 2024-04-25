@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from os import getenv
 
-from models.applications import Listing
-from models.applications_otypes import (
+from models.listings import Listing
+from models.listings_otypes import (
     ListingResponse,
     Listings,
 )
@@ -19,7 +20,7 @@ from validation import (
 )
 
 router = APIRouter()
-
+INTER_COMMUNICATION_SECRET = getenv("INTER_COMMUNICATION_SECRET", "inter-communication-secret")
 
 # make listing
 @router.post(
@@ -46,8 +47,14 @@ async def make_listing(
 )
 async def get_listing(
     listing: Listing,
-    user=Depends(get_user),
+    secret: str | None = None
 ):
+    if secret != INTER_COMMUNICATION_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Unauthorized Access",
+        )
+    
     handler = ExistingListingValidator()
     request = {"listing": listing.name}
     handler.handle_request(request)

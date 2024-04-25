@@ -54,19 +54,9 @@ def get_user_details(access_token_se_p3: str = Cookie(None)):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Not logged in",
         )
-
-def get_reply(url: str, access_token_se_p3: str = Cookie(None)):
-    response = requests.get(url, cookies={"access_token_se_p3": access_token_se_p3})
-    if response.status_code == 200:
-        return response.json()
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Report generation Failed!",
-        )
     
-def get_fast_reply(url: str, payload, access_token_se_p3: str = Cookie(None)):
-    response = requests.post(url, data=payload, cookies={"access_token_se_p3": access_token_se_p3})
+def get_reply(url: str, payload):
+    response = requests.post(url, data=payload)
     if response.status_code == 200:
         return response.json()
     else:

@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 from fastapi import HTTPException, status
 import re
+from os import getenv
 
 from db import db
-from utils import get_user_application, get_fast_reply
+from utils import get_user_application, get_reply
+
+INTER_COMMUNICATION_SECRET = getenv("INTER_COMMUNICATION_SECRET", "inter-communication-secret")
 
 class AbstractHandler(ABC):
     """
@@ -84,8 +87,11 @@ class ExistingListingValidator(AbstractHandler):
     """
 
     def validate_listing(self, name: str):
-        payload = {"listing": name}
-        listing = get_fast_reply(f"http://listings/get_listing", payload)
+        payload = {
+            "listing": name,
+            "secret": INTER_COMMUNICATION_SECRET
+        }
+        listing = get_reply(f"http://listings/get_listing", payload)
         if listing:
             return True
         else:

@@ -9,18 +9,18 @@ DEBUG = getenv("BACKEND_DEBUG", "False").lower() in ("true", "1", "t")
 if DEBUG:
     app = FastAPI(
         debug=DEBUG,
-        title="Application Management",
-        description="Application Management Backend for SE Project 3 for the Team 12",
-        root_path="/api/applications"
+        title="Listing Management",
+        description="Listing Management Backend for SE Project 3 for the Team 12",
+        root_path="/api/listings"
     )
 else:
     app = FastAPI(
         debug=DEBUG,
-        title="Application Management",
-        description="Application Management Backend for SE Project 3 for the Team 12",
+        title="Listing Management",
+        description="Listing Management Backend for SE Project 3 for the Team 12",
         docs_url=None,
         redoc_url=None,
-        root_path="/api/applications"
+        root_path="/api/listings"
     )
 
 # Backend Index Page - For checking purposes
