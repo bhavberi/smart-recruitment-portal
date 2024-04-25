@@ -24,10 +24,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Hash password using bcrypt
 def get_password_hash(password: str):
-    if len(password) < 6:
-        raise HTTPException(
-            status_code=400, detail="Password should be atleast 6 characters long"
-        )
     return pwd_context.hash(password)
 
 

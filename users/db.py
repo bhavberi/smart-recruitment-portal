@@ -1,6 +1,12 @@
 from os import getenv
 from pymongo import MongoClient
+from passlib.context import CryptContext
 
+SECRET_KEY = getenv("JWT_SECRET_KEY", "this_is_my_very_secretive_secret") + "__d7__"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 240
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # get mongodb URI and database name from environment variale
 MONGO_URI = "mongodb://{}:{}@{}:{}/".format(
     getenv("MONGO_USERNAME", default="username"),
@@ -31,7 +37,21 @@ try:
         print("User with admin role exists.")
     else:
         ADMIN_PASSWORD = getenv("ADMIN_PASSWORD", default="admin")
-        db.users.insert_one({"username": "admin", "password": ADMIN_PASSWORD, "role": "admin"})
+        db.users.insert_one({
+            "username": "admin", 
+            "password": pwd_context.hash(ADMIN_PASSWORD),
+            "role": "admin",
+            "email": "admin@admin.in",
+            "contact": "9999999999",
+            "address": {
+                "house_no": "123",
+                "street": "admin street",
+                "city": "admin city",
+                "state": "admin state",
+                "country": "admin country",
+                "pincode": "123456"
+            }
+        })
         print("The admin user was created.")
 except Exception:
     pass
