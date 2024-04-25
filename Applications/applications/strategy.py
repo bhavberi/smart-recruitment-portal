@@ -57,4 +57,4 @@ class Candidate_listing(Strategy):
         handler.escalate_request(ExistingListingValidator())
         request = {"listing": self.listing.name, "role": self.user["role"]}
         handler.handle_request(request)
-        return Applications(applications=get_all_applications(self.listing.name))
+        return Applications(applications=get_all_user_applications(self.listing.name, self.user["username"]))
