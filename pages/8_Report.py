@@ -55,21 +55,77 @@ payload = json.dumps(payload)
 headers = {"Content-Type": "application/json"}
 response = requests.post(url, data=payload, headers=headers, cookies=get_all_cookies())
 
-st.write(response)
+st.session_state['report_response'] = response
+
+# st.write(response.status_code)
+# st.write(response.content)
 
 if response.status_code == 200:
     report = json.loads(response.content)
+
+    columns1 = st.columns(2)
+    columns1[0].markdown("Name")
+    columns1[1].markdown(f"{report['user']}")
     
-    columns = st.columns(2)
-    for field in report:
-        columns[0].markdown(f"{field}")
-        columns[1].markdown(f"{report[field]}")
+
+    st.markdown("---")
+    st.header("MBTI Results")
+    columns2 = st.columns(2)
+    columns2[0].write("Personality")
+    columns2[1].write(report['mbti']['personality'])
+
+    columns2[0].write("Probability")
+    columns2[1].write(report['mbti']['probability'])
+    
+    
+    st.markdown("---")
+    st.header("Llama Results")
+    st.markdown(report['llama'])
+    
+    
+    st.markdown("---")
+    st.header("Sentiment Results")
+    columns3 = st.columns(2)
+    columns3[0].write("Score")
+    
+    columns3[1].write(f"Positive: {(report['sentiment']['score']['positive'])}")
+    columns3[1].write(f"Neutral: {(report['sentiment']['score']['neutral'])}")
+    columns3[1].write(f"Negative: {(report['sentiment']['score']['negative'])}")
+    columns3[1].write(f"No Hate: {(report['sentiment']['score']['nohate'])}")
+    columns3[1].write(f"Hate: {(report['sentiment']['score']['hate'])}")
+    columns3[1].write(f"Non-misogyny: {(report['sentiment']['score']['nonmisogyny'])}")
+    columns3[1].write(f"Misogyny: {(report['sentiment']['score']['misogyny'])}")
+        
+    columns4 = st.columns(2)
+    columns4[0].write("Controversial Statements")
+    
+    if report['sentiment']['controversial'] == []:
+        columns4[1].write("No controversial statements found.")
+        
+    if report['sentiment']['controversial'] != []:
+        for statement in report['sentiment']['controversial']:
+            if statement is not None: columns4[1].write(statement) 
+        
+        
+    st.markdown("---")
+    st.header("Skills")
+    skills = json.loads(report['skills'])
+    columns5 = st.columns(2)
+    columns5[0].write("Occupation")
+    columns5[1].write("Probability")
+    for skill in skills:
+        columns5[0].write(skill)
+        columns5[1].write(skills[skill])
+    
         
     if st.session_state['application_report']['status'] != "pending":
         st.success(f"This application has already been {st.session_state['application_report']['status']}.")
         st.stop()
         
-    if st.button("Accept", key="accept"):
+    st.markdown("---")
+        
+    columns6 = st.columns(2)
+    if columns6[0].button("Accept", key="accept"):
         url = "http://localhost/api/applications/approve"        
         response = requests.put(url, data=payload, headers=headers, cookies=get_all_cookies())
         
@@ -80,7 +136,7 @@ if response.status_code == 200:
         else:
             st.error("An error occurred.")
             
-    if st.button("Reject", key="reject"):
+    if columns6[1].button("Reject", key="reject"):
         url = "http://localhost/api/applications/reject"
         response = requests.put(url, data=payload, headers=headers, cookies=get_all_cookies())
         

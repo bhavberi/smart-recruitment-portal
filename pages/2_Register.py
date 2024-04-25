@@ -89,6 +89,7 @@ if submit:
         },
         "role": params["Role"],
     }
+    # st.write(payload)
     payload = json.dumps(payload)
 
     # st.write(f"You have entered: ", payload)
@@ -99,4 +100,19 @@ if submit:
     response = requests.post(url, data=payload, headers=headers)
 
     # st.write(response.status_code)
-    st.write(json.loads(response.text)["detail"])
+    if response.status_code != 201:
+            st.warning(json.loads(response.text)["detail"])
+
+    else:
+        # st.write(f"Successfully logged in, {username}!")
+        st.success(f"Successfully created account, {params['Username']}!")
+        
+        controller = CookieController()
+        for cookie in response.cookies:
+            controller.set(cookie.name, str(cookie.value))
+        
+        st.session_state["logged_in_user"] = params['Username']
+        st.session_state["logged_in_role"] = json.loads(response.content)["role"]
+        st.session_state['report_data'] = None
+        
+        

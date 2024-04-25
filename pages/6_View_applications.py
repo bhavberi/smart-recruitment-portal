@@ -63,12 +63,21 @@ if st.session_state['applications']:
     columns = st.columns(2)
 
     for row_id, application in enumerate(st.session_state['applications']):
-        columns[0].markdown(f"{row_id+1}:")
-        columns[1].markdown(f"{row_id+1}")
+        # columns[0].markdown(f"{row_id+1}:")
+        # columns[1].markdown(f"{row_id+1}")
         
         for field in application:
-            columns[0].markdown(f"{field}")
-            columns[1].markdown(f"{application[field]}")
+            columns_new = st.columns(2)
+            label = field
+            
+            if field == "user":
+                label = f"**User `{row_id+1}`**"
+                
+            columns_new[0].markdown(label)
+            columns_new[1].markdown(f"{application[field]}")
+            
+        st.markdown("---")
+            # columns[1].markdown("---")
         
 else:
     st.write("No applications found for this listing.")

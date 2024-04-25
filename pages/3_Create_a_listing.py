@@ -32,7 +32,7 @@ if st.session_state["logged_in_user"] is None:
     
 # add verification for type of user
 if st.session_state["logged_in_role"] not in ["admin"]:
-    st.warning("You need to be a recruiter to create a listing.")
+    st.warning("You need to be an admin to create a listing.")
     st.stop()
     
 listing_name = st.text_input("Listing Name")

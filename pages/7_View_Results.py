@@ -54,11 +54,14 @@ if submit:
         st.write("No application found")
         st.stop()
 
+    # st.write(response.content)
     status = json.loads(response.text)["status"]
 
-    if status is not None:
-        if status:
-            st.success("Congratulations! Your application was accepted.")
-
-    else:
-        st.write("Application not reviewed yet.")
+    if status == "pending":
+        st.warning("Your application is still pending.")
+        
+    elif status == "rejected":
+            st.error("Sorry! Your application was rejected.")
+            
+    elif status == "accepted":
+        st.write("Congratulations! Your application was accepted.")

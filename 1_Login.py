@@ -24,6 +24,8 @@ if "access_token_se_p3" in get_all_cookies():
     url = "http://localhost/api/users/current"
     headers = {"Content-Type": "application/json"}
     response = requests.get(url, headers=headers, cookies=get_all_cookies())
+    
+    # st.write(response.content)
 
     username = json.loads(response.content)["username"]
     role = json.loads(response.content)["role"]
@@ -31,7 +33,7 @@ if "access_token_se_p3" in get_all_cookies():
     st.session_state["logged_in_user"] = username
     st.session_state["logged_in_role"] = role
 
-    st.write(f"You are already logged in, {role} {username}.")
+    st.warning(f"You are already logged in, {role} {username}.")
     st.stop()
 
 if "logged_in_user" not in st.session_state:
@@ -55,6 +57,8 @@ if submit:
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     
     response = requests.post(url, data=payload, headers=headers)
+    
+    # st.write(response.content)
     
     controller = CookieController()
     for cookie in response.cookies:

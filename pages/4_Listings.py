@@ -38,6 +38,8 @@ url = "http://localhost/api/listings/get_listings"
 headers = {"Content-Type": "application/json"}
 response = requests.get(url, headers=headers, cookies=get_all_cookies())
 
+# st.write(response.content)
+
 listings = json.loads(response.text)['listings']
 listings = [listing['name'] for listing in listings]
 
