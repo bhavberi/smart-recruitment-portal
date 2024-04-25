@@ -36,15 +36,38 @@ services:
 
     applications:
         build:
-            context: ./applications
+            context: ./Applications/applications
         env_file:
             - ./.env
             - ./envs/.env.applications
         volumes:
-            - ./applications:/app
+            - ./Applications/applications:/app
         tty: true
         depends_on:
             - mongo_applications
+
+    mongo_listings:
+        image: mongo:7.0.8
+        volumes:
+            - mongo_data_listings:/data/db
+        command: mongod --port 27019
+        ports:
+            - 27019:27019
+        env_file:
+            - ./envs/.env.listings
+        restart: unless-stopped
+
+    listings:
+        build:
+            context: ./Applications/listings
+        env_file:
+            - ./.env
+            - ./envs/.env.listings
+        volumes:
+            - ./Applications/listings:/app
+        tty: true
+        depends_on:
+            - mongo_listings
 
 
     # AI Services
@@ -84,6 +107,7 @@ services:
         depends_on:
             - users
             - applications
+            - listings
             - llama
             - mbti
             - sentiment
@@ -91,3 +115,4 @@ services:
 volumes:
     mongo_data_users:
     mongo_data_applications:
+    mongo_data_listings:

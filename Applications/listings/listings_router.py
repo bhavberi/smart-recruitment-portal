@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, status
-import requests
 
 from models.applications import Listing
 from models.applications_otypes import (
@@ -18,7 +17,9 @@ from validation import (
     ListingValidator,
     ExistingListingValidator,
 )
+
 router = APIRouter()
+
 
 # make listing
 @router.post(
@@ -28,7 +29,6 @@ async def make_listing(
     listing: Listing,
     user=Depends(get_user),
 ):
-    
     handler = AdminValidator()
     handler.escalate_request(ListingValidator())
     request = {"listing": listing.name, "role": user["role"]}
@@ -39,19 +39,21 @@ async def make_listing(
 
     return {"name": listing.name}
 
+
 # Get Listing
-@router.post("/get_listing", status_code=status.HTTP_200_OK, response_model=ListingResponse
+@router.post(
+    "/get_listing", status_code=status.HTTP_200_OK, response_model=ListingResponse
 )
 async def get_listing(
     listing: Listing,
     user=Depends(get_user),
 ):
-    
     handler = ExistingListingValidator()
     request = {"listing": listing.name}
     handler.handle_request(request)
 
     return {"name": listing.name}
+
 
 # delete listing
 @router.delete("/delete_listing", status_code=status.HTTP_200_OK)
@@ -59,16 +61,15 @@ async def delete_listing(
     listing: Listing,
     user=Depends(get_user),
 ):
-    
-        handler = AdminValidator()
-        handler.escalate_request(ExistingListingValidator())
-        request = {"listing": listing.name, "role": user["role"]}
-        handler.handle_request(request)
-    
-        # delete listing
-        remove_listing(listing.name)
-    
-        return {"name": listing.name}
+    handler = AdminValidator()
+    handler.escalate_request(ExistingListingValidator())
+    request = {"listing": listing.name, "role": user["role"]}
+    handler.handle_request(request)
+
+    # delete listing
+    remove_listing(listing.name)
+
+    return {"name": listing.name}
 
 
 # Get all the listings
@@ -76,5 +77,4 @@ async def delete_listing(
 async def get_listings(
     user=Depends(get_user),
 ):
-
-    return Listings(listings = get_all_listings())
+    return Listings(listings=get_all_listings())

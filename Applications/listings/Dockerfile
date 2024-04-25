@@ -13,7 +13,6 @@ EXPOSE 80
 WORKDIR /app/
 ENV VIRTUAL_ENV=/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV BACKEND_DEBUG=0
 COPY --from=python_cache /venv /venv
 COPY . .
 ENTRYPOINT ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80", "--reload"]

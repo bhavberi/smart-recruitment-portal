@@ -17,12 +17,10 @@ from utils import (
     get_all_applications,
     get_user,
     get_reply,
-    get_user_details,
 )
 
 from validation import (
     AdminValidator,
-    ListingValidator,
     SelfUserValidator,
     CandidateValidator,
     ExistingListingValidator,
@@ -118,7 +116,7 @@ async def get_report(
     report_director = ReportDirector()
     report_director.builder = FullReportBuilder()
     return report_director.build_full_report(
-        userapplication.username, llama, mbti, sentiment
+        userapplication.username, llama, mbti, sentiment, skills
     )
 
 # approve the application
@@ -137,7 +135,7 @@ async def approve(
         userapplication.username, userapplication.listing
     )
 
-    if not application["accepted"] == True:
+    if application["accepted"] is False:
         result = approve_application(userapplication.username, userapplication.listing)
         if not result.modified_count:
             raise HTTPException(

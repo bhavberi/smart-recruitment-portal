@@ -1,8 +1,7 @@
 from fastapi import HTTPException, Cookie, status
-import re
 import requests
 
-from models.applications_otypes import ApplicationInput
+from models.applications import Application
 from db import db
 
 def delete_applications(name: str):
@@ -10,9 +9,10 @@ def delete_applications(name: str):
     return result
 
 
-def create_application(application: ApplicationInput):
-    application["accepted"] = False
-    result = db.applications.insert_one(application)
+def create_application(application: dict):
+    # application["accepted"] = False
+    application_built = Application(**application)
+    result = db.applications.insert_one(application_built)
     return str(result.inserted_id)
 
 
