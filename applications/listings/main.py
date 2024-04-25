@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from os import getenv
-import application_router
+import listings_router
 
 DEBUG = getenv("BACKEND_DEBUG", "False").lower() in ("true", "1", "t")
 
@@ -29,4 +29,4 @@ async def index():
     return {"message": "Backend Running!!"}
 
 # Mount the application router on the "/application" path
-app.include_router(application_router.router, tags=["Applications"])
+app.include_router(listings_router.router, tags=["Listings"])

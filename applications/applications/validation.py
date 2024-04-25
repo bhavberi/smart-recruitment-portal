@@ -3,7 +3,7 @@ from fastapi import HTTPException, status
 import re
 
 from db import db
-from utils import get_user_application
+from utils import get_user_application, get_fast_reply
 
 class AbstractHandler(ABC):
     """
@@ -107,7 +107,8 @@ class ExistingListingValidator(AbstractHandler):
     """
 
     def validate_listing(self, name: str):
-        listing = db.listings.find_one({"name": name})
+        payload = {"listing": name}
+        listing = get_fast_reply(f"http://listings/get_listing", payload)
         if listing:
             return True
         else:

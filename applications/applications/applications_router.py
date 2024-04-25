@@ -1,26 +1,22 @@
-from fastapi import APIRouter, HTTPException, Depends, Response, Request, status
+from fastapi import APIRouter, HTTPException, Depends, status
 import requests
 
-from models.applications import Listing, Report
+from models.applications import Report, Listing
 from models.applications_otypes import (
-    ListingResponse,
     ApplicationResponse,
     UserApplication,
     Approval,
     Applications,
     ApplicationInput,
-    Listings,
 )
 from utils import (
-    create_listing,
-    remove_listing,
+    delete_applications,
     create_application,
     get_user_application,
     approve_application,
     get_all_applications,
-    get_all_listings,
     get_user,
-    get_ai_response,
+    get_reply,
     get_user_details,
 )
 
@@ -41,52 +37,21 @@ from build_report import ReportDirector, FullReportBuilder
 
 router = APIRouter()
 
-
-# make listing
-@router.post(
-    "/make_listing", status_code=status.HTTP_201_CREATED, response_model=ListingResponse
-)
-async def make_listing(
-    listing: Listing,
-    user=Depends(get_user),
-):
-    
-    handler = AdminValidator()
-    handler.escalate_request(ListingValidator())
-    request = {"listing": listing.name, "role": user["role"]}
-    handler.handle_request(request)
-
-    # create listing
-    create_listing(listing.model_dump())
-
-    return {"name": listing.name}
-
-# delete listing
-@router.delete("/delete_listing", status_code=status.HTTP_200_OK)
+# delete applications
+@router.delete("/delete_applications", status_code=status.HTTP_200_OK)
 async def delete_listing(
     listing: Listing,
     user=Depends(get_user),
 ):
     
         handler = AdminValidator()
-        handler.escalate_request(ExistingListingValidator())
-        request = {"listing": listing.name, "role": user["role"]}
+        request = {"role": user["role"]}
         handler.handle_request(request)
     
-        # delete listing
-        remove_listing(listing.name)
+        # delete applications from a listing
+        delete_applications(listing.name)
     
         return {"name": listing.name}
-
-
-# Get all the listings
-@router.get("/get_Listings", status_code=status.HTTP_200_OK, response_model=Listings)
-async def get_listings(
-    user=Depends(get_user),
-):
-
-    return Listings(listings = get_all_listings())
-
 
 # apply for job
 @router.post("/apply", status_code=status.HTTP_201_CREATED, response_model=ApplicationResponse)
@@ -142,11 +107,11 @@ async def get_report(
         userapplication.username, userapplication.listing
     )
 
-    mbti = get_ai_response(f"/api/mbti/{application['twitter_id'].split('/')[-1]}")
+    mbti = get_reply(f"/api/mbti/{application['twitter_id'].split('/')[-1]}")
 
-    llama = get_ai_response(f"/api/llama/{mbti}")
+    llama = get_reply(f"/api/llama/{mbti}")
 
-    sentiment = get_ai_response(f"/api/sentiment/{application['twitter_id'].split('/')[-1]}")
+    sentiment = get_reply(f"/api/sentiment/{application['twitter_id'].split('/')[-1]}")
 
     skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
 
