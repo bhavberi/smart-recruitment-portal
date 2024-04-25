@@ -31,20 +31,30 @@ class Strategy:
 
 
 class Recruiter_listing(Strategy):
-    def execute(listing: Listing,
-                user):
+    def __init__(self, listing: Listing,
+                 user) -> None:
+        super().__init__()
+        self.listing = listing
+        self.user = user
+
+    def execute(self):
         handler = RecruiterValidator()
         handler.escalate_request(ExistingListingValidator())
-        request = {"listing": listing.name, "role": user["role"]}
+        request = {"listing": self.listing.name, "role": self.user["role"]}
         handler.handle_request(request)
-        return Applications(applications=get_all_applications(listing.name))
+        return Applications(applications=get_all_applications(self.listing.name))
 
 
 class Candidate_listing(Strategy):
-    def execute(listing: Listing,
-                user):
-        handler = CandidateValidator()
+    def __init__(self, listing: Listing,
+                 user) -> None:
+        super().__init__()
+        self.listing = listing
+        self.user = user
+
+    def execute(self):
+        handler = Candidate_listing()
         handler.escalate_request(ExistingListingValidator())
-        request = {"listing": listing.name, "role": user["role"]}
+        request = {"listing": self.listing.name, "role": self.user["role"]}
         handler.handle_request(request)
-        return Applications(applications=get_all_user_applications(listing.name))
+        return Applications(applications=get_all_applications(self.listing.name))

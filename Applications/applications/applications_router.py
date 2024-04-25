@@ -90,9 +90,9 @@ async def get_applications(
     user=Depends(get_user),
 ):
     if (user["role"] == "candidate"):
-        context = Context(Candidate_listing())
+        context = Context(Candidate_listing(listing, user))
     elif (user["role"] == "recruiter"):
-        context = Context(Recruiter_listing())
+        context = Context(Recruiter_listing(listing, user))
     context.execute_strategy()
     # handler = RecruiterValidator()
     # handler.escalate_request(ExistingListingValidator())
@@ -119,10 +119,13 @@ async def get_report(
         userapplication.username, userapplication.listing
     )
 
-    mbti = get_reply(f"http://mbti/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
+    mbti = get_reply(f"http://mbti/{application['twitter_id'].split('/')[-1]}", {
+                     "secret": INTER_COMMUNICATION_SECRET})
     llama_input = mbti["personality"]
-    llama = get_reply(f"http://llama/{llama_input}", {"secret": INTER_COMMUNICATION_SECRET})["result"]
-    sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
+    llama = get_reply(
+        f"http://llama/{llama_input}", {"secret": INTER_COMMUNICATION_SECRET})["result"]
+    sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {
+                          "secret": INTER_COMMUNICATION_SECRET})
     # skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
 
     skills = "Damn good at coding!"
@@ -153,7 +156,8 @@ async def approve(
     )
 
     if application["status"] == Status.pending:
-        result = update_status_application(userapplication.username, userapplication.listing, Status.accepted)
+        result = update_status_application(
+            userapplication.username, userapplication.listing, Status.accepted)
         if not result.modified_count:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -168,6 +172,8 @@ async def approve(
     return {"message": "User application updated successfully!"}
 
 # reject the application
+
+
 @router.put("/reject", status_code=status.HTTP_202_ACCEPTED)
 async def reject(
     userapplication: UserApplication,
@@ -176,7 +182,8 @@ async def reject(
 
     handler = RecruiterValidator()
     handler.escalate_request(ExistingApplicationValidator())
-    request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"]}
+    request = {"user": userapplication.username,
+               "listing": userapplication.listing, "role": user["role"]}
     handler.handle_request(request)
 
     application = get_user_application(
@@ -184,7 +191,8 @@ async def reject(
     )
 
     if application["status"] == Status.pending:
-        result = update_status_application(userapplication.username, userapplication.listing, Status.rejected)
+        result = update_status_application(
+            userapplication.username, userapplication.listing, Status.rejected)
         if not result.modified_count:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
