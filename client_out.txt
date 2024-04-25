@@ -1,0 +1,19 @@
+Time taken for creating listing 1: 0.06430649757385254
+Latency: 0.061823
+
+Total time taken for creating 1000 listings:  2.8667824268341064
+Throughput:  348.8231233175016
+
+Logged out successfully.
+Time taken for applying listing 1: 0.06349539756774902
+Latency: 0.062714
+
+Total time taken for applying to 1000 listings:  6.050321340560913
+Throughput:  165.28047746754754
+
+Logged out successfully.
+Time taken for getting report 1: 3.6641921997070312
+Latency: 3.663648
+Total time taken for getting 50 reports:  46.88367414474487
+Throughput:  1.0664693182030494
+Logged out successfully.
