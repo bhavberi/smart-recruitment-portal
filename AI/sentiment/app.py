@@ -1,8 +1,10 @@
 from flask import Flask, jsonify, request
 from os import getenv
+import json
 
 import pandas as pd
 from transformers import pipeline
+import numpy as np
 import re
 
 DEBUG = getenv("DEBUG", "False").lower() in ("true", "1", "t")
@@ -59,9 +61,11 @@ misogyny_pipeline = pipeline(
 
 @app.route('/<name>', methods=['GET'])
 def calculate_score(name):
-    if request.get_json()['secret'] != INTER_COMMUNICATION_SECRET:
+    if request.args.get('secret') != INTER_COMMUNICATION_SECRET:
         return "Unauthorized", 401
-    input = collection[name]
+    
+    name_to_send = np.random.choice(data.user.unique())
+    input = collection[name_to_send]
     sentiment = sentiment_pipeline(input, return_all_scores=True)
     hate = hate_pipeline(input, return_all_scores=True)
     misogyny = misogyny_pipeline(input, return_all_scores=True)
@@ -111,7 +115,12 @@ def calculate_score(name):
 
     user_data.to_csv("sentiment_data.csv", sep=",",
                      index=False, encoding="utf-8")
-    return str(((sums / len(user_data)).to_dict(), controversial))
+    return json.dumps(
+        {
+            "score": (sums / len(user_data)).to_dict(),
+            "controversial": controversial,
+        }
+    )
 
 
 if __name__ == "__main__":

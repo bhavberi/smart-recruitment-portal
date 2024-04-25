@@ -1,8 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-import requests
 from os import getenv
 
-from models.applications import Report, Listing
+from models.applications import Report, Listing, Status
 from models.applications_otypes import (
     ApplicationResponse,
     UserApplication,
@@ -14,7 +13,7 @@ from utils import (
     delete_applications,
     create_application,
     get_user_application,
-    approve_application,
+    update_status_application,
     get_all_applications,
     get_user,
     get_reply,
@@ -111,8 +110,6 @@ async def get_report(
     userapplication: UserApplication,
     user=Depends(get_user),
 ):
-
-    print(userapplication)
     handler = RecruiterValidator()
     handler.escalate_request(ExistingApplicationValidator())
     request = {"user": userapplication.username,
@@ -123,14 +120,11 @@ async def get_report(
         userapplication.username, userapplication.listing
     )
 
-    mbti = get_reply(f"http://mbti/{application['twitter_id'].split('/')[-1]}", {
-                     "secret": INTER_COMMUNICATION_SECRET})
-    llama = get_reply(f"http://llama/{mbti}",
-                      {"secret": INTER_COMMUNICATION_SECRET})
-    sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {
-                          "secret": INTER_COMMUNICATION_SECRET})
-    skills = requests.get(
-        f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
+    mbti = get_reply(f"http://mbti/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
+    llama_input = mbti["personality"]
+    llama = get_reply(f"http://llama/{llama_input}", {"secret": INTER_COMMUNICATION_SECRET})["result"]
+    sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
+    # skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
 
     skills = "Damn good at coding!"
 
@@ -159,14 +153,49 @@ async def approve(
         userapplication.username, userapplication.listing
     )
 
-    if application["accepted"] is False:
-        result = approve_application(
-            userapplication.username, userapplication.listing)
+    if application["status"] == Status.pending:
+        result = update_status_application(userapplication.username, userapplication.listing, Status.accepted)
         if not result.modified_count:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update user details!",
             )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Application already approved!",
+        )
+
+    return {"message": "User application updated successfully!"}
+
+# reject the application
+@router.put("/reject", status_code=status.HTTP_202_ACCEPTED)
+async def reject(
+    userapplication: UserApplication,
+    user=Depends(get_user),
+):
+
+    handler = RecruiterValidator()
+    handler.escalate_request(ExistingApplicationValidator())
+    request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"]}
+    handler.handle_request(request)
+
+    application = get_user_application(
+        userapplication.username, userapplication.listing
+    )
+
+    if application["status"] == Status.pending:
+        result = update_status_application(userapplication.username, userapplication.listing, Status.rejected)
+        if not result.modified_count:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to update user details!",
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Application already approved!",
+        )
 
     return {"message": "User application updated successfully!"}
 
@@ -189,4 +218,4 @@ def get_application_status(
         userapplication.username, userapplication.listing
     )
 
-    return {"status": application["accepted"]}
+    return {"status": application["status"]}

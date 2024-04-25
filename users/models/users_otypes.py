@@ -36,6 +36,6 @@ class ChangePasswordInput(BaseModel):
 
 UserEditInput = create_model(
     "UserEditInput",
-    **{name: (type_, ...) for name, type_ in User.__annotations__.items() if name not in {'username', 'role', 'password'}} # type: ignore
+    **{name: (type_, ...) for name, type_ in User.__annotations__.items() if name not in {'username', 'role', 'password', 'email'}} # type: ignore
 ) # type: ignore
 
