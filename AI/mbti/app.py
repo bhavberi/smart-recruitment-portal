@@ -233,6 +233,9 @@ df.columns = ["target", "ids", "date", "flag", "user", "text"]
 def main(name):
     # import os
     # os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    print("=====================================")
+    print("HELLLOOOOOO")
+    print("=====================================")
     wordnet.synsets("hello")
 
     personality_types = [

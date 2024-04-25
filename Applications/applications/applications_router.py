@@ -99,6 +99,7 @@ async def get_report(
     user=Depends(get_user),
 ):
 
+    print(userapplication)
     handler = RecruiterValidator()
     handler.escalate_request(ExistingApplicationValidator())
     request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"]}
@@ -108,13 +109,10 @@ async def get_report(
         userapplication.username, userapplication.listing
     )
 
-    mbti = get_reply(f"/api/mbti/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
-
-    llama = get_reply(f"/api/llama/{mbti}", {"secret": INTER_COMMUNICATION_SECRET})
-
-    sentiment = get_reply(f"/api/sentiment/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
-
-    # skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
+    mbti = get_reply(f"http://mbti/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
+    llama = get_reply(f"http://llama/{mbti}", {"secret": INTER_COMMUNICATION_SECRET})
+    sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
+    skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
 
     skills = "Damn good at coding!"
 
