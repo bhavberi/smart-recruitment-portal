@@ -32,13 +32,17 @@ from validation import (
     NoApplicationValidator
 )
 
+from strategy import Context, Recruiter_listing, Candidate_listing
 from build_report import ReportDirector, FullReportBuilder
 
 router = APIRouter()
 
-INTER_COMMUNICATION_SECRET = getenv("INTER_COMMUNICATION_SECRET", "inter-communication-secret")
+INTER_COMMUNICATION_SECRET = getenv(
+    "INTER_COMMUNICATION_SECRET", "inter-communication-secret")
 
 # delete applications
+
+
 @router.post("/remove_applications", status_code=status.HTTP_200_OK)
 async def delete_listing(
     listing: str,
@@ -55,6 +59,8 @@ async def delete_listing(
     return {"name": listing}
 
 # apply for job
+
+
 @router.post("/apply", status_code=status.HTTP_201_CREATED, response_model=ApplicationResponse)
 async def apply(
     application: ApplicationInput,
@@ -62,7 +68,8 @@ async def apply(
 ):
 
     handler = SelfUserValidator()
-    handler.escalate_request(CandidateValidator()).escalate_request(ExistingListingValidator()).escalate_request(NoApplicationValidator()).escalate_request(TwitterLinkValidator()).escalate_request(LinkedinLinkValidator())
+    handler.escalate_request(CandidateValidator()).escalate_request(ExistingListingValidator()).escalate_request(
+        NoApplicationValidator()).escalate_request(TwitterLinkValidator()).escalate_request(LinkedinLinkValidator())
     request = {"user": application.user,
                "current_user": user["username"],
                "role": user["role"],
@@ -83,16 +90,22 @@ async def get_applications(
     listing: Listing,
     user=Depends(get_user),
 ):
-    
-    handler = RecruiterValidator()
-    handler.escalate_request(ExistingListingValidator())
-    request = {"listing": listing.name, "role": user["role"]}
-    handler.handle_request(request)
+    if (user["role"] == "candidate"):
+        context = Context(Candidate_listing())
+        context.execute_strategy()
+    elif (user["role"] == "recruiter"):
+        context = Context(Recruiter_listing())
+        context.execute_strategy()
+    # handler = RecruiterValidator()
+    # handler.escalate_request(ExistingListingValidator())
+    # request = {"listing": listing.name, "role": user["role"]}
+    # handler.handle_request(request)
 
-    return Applications(applications = get_all_applications(listing.name))
+    # return Applications(applications=get_all_applications(listing.name))
+
+    # get the report for an application
 
 
-# get the report for an application
 @router.post("/get_report", status_code=status.HTTP_200_OK, response_model=Report)
 async def get_report(
     userapplication: UserApplication,
@@ -102,17 +115,22 @@ async def get_report(
     print(userapplication)
     handler = RecruiterValidator()
     handler.escalate_request(ExistingApplicationValidator())
-    request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"]}
+    request = {"user": userapplication.username,
+               "listing": userapplication.listing, "role": user["role"]}
     handler.handle_request(request)
 
     application = get_user_application(
         userapplication.username, userapplication.listing
     )
 
-    mbti = get_reply(f"http://mbti/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
-    llama = get_reply(f"http://llama/{mbti}", {"secret": INTER_COMMUNICATION_SECRET})
-    sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
-    skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
+    mbti = get_reply(f"http://mbti/{application['twitter_id'].split('/')[-1]}", {
+                     "secret": INTER_COMMUNICATION_SECRET})
+    llama = get_reply(f"http://llama/{mbti}",
+                      {"secret": INTER_COMMUNICATION_SECRET})
+    sentiment = get_reply(f"http://sentiment/{application['twitter_id'].split('/')[-1]}", {
+                          "secret": INTER_COMMUNICATION_SECRET})
+    skills = requests.get(
+        f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
 
     skills = "Damn good at coding!"
 
@@ -123,6 +141,8 @@ async def get_report(
     )
 
 # approve the application
+
+
 @router.put("/approve", status_code=status.HTTP_202_ACCEPTED)
 async def approve(
     userapplication: UserApplication,
@@ -131,7 +151,8 @@ async def approve(
 
     handler = RecruiterValidator()
     handler.escalate_request(ExistingApplicationValidator())
-    request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"]}
+    request = {"user": userapplication.username,
+               "listing": userapplication.listing, "role": user["role"]}
     handler.handle_request(request)
 
     application = get_user_application(
@@ -139,7 +160,8 @@ async def approve(
     )
 
     if application["accepted"] is False:
-        result = approve_application(userapplication.username, userapplication.listing)
+        result = approve_application(
+            userapplication.username, userapplication.listing)
         if not result.modified_count:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -155,10 +177,12 @@ def get_application_status(
     userapplication: UserApplication,
     user=Depends(get_user),
 ):
-    
+
     handler = CandidateValidator()
-    handler.escalate_request(SelfUserValidator()).escalate_request(ExistingApplicationValidator())
-    request = {"user": userapplication.username, "listing": userapplication.listing, "role": user["role"], "current_user": user["username"]}
+    handler.escalate_request(SelfUserValidator()).escalate_request(
+        ExistingApplicationValidator())
+    request = {"user": userapplication.username, "listing": userapplication.listing,
+               "role": user["role"], "current_user": user["username"]}
     handler.handle_request(request)
 
     application = get_user_application(
