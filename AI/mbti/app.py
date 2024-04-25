@@ -1,5 +1,6 @@
 from flask import Flask, request
 from os import getenv
+import json
 
 from sklearn.model_selection import train_test_split
 import re
@@ -16,12 +17,8 @@ from tqdm import tqdm
 import nltk
 from nltk.stem import WordNetLemmatizer
 
-
 nltk.download('wordnet', download_dir='./datasets')
-
-
 nltk.download('stopwords', download_dir='./datasets')
-
 nltk.data.path.append('./datasets')
 
 DEBUG = getenv("DEBUG", "False").lower() in ("true", "1", "t")
@@ -223,13 +220,10 @@ df.columns = ["target", "ids", "date", "flag", "user", "text"]
 
 @app.route('/<name>', methods=['GET'])
 def main(name):
-    if request.get_json()['secret'] != INTER_COMMUNICATION_SECRET:
+    if request.args.get('secret') != INTER_COMMUNICATION_SECRET:
         return "Unauthorized", 401
     # import os
     # os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    print("=====================================")
-    print("HELLLOOOOOO")
-    print("=====================================")
     wordnet.synsets("hello")
 
     f = df[df.iloc[:, 4].isin(df.iloc[:, 4].value_counts().index[:200])]
@@ -242,7 +236,9 @@ def main(name):
     collection = {}
     for user in data.user.unique():
         collection[user] = data[data.user == user].iloc[:, 1].tolist()
-    input = collection[name]
+
+    name_to_send = np.random.choice(data.user.unique())
+    input = collection[name_to_send]
     input, _ = utils.clear_text_pred(input)
     input = utils.vectorize(input, vectorizer)
     y_predict = model.predict(input)
@@ -261,9 +257,14 @@ def main(name):
                     probability.append(
                         [stacked[i][0]*stacked[j][1]*stacked[k][2]*stacked[l][3], [i, j, k, l]])
     probability.sort(reverse=True)
-    out = [utils.returnLabel(probability[0][1]),
-           utils.returnLabel(probability[1][1])]
-    return out
+    # out = [utils.returnLabel(probability[0][1]),
+    #        utils.returnLabel(probability[1][1])]
+    return json.dumps(
+        {
+            "personality": utils.returnLabel(probability[0][1]),
+            "probability": probability[0][0]
+        }
+    )
 
 
 if __name__ == "__main__":
