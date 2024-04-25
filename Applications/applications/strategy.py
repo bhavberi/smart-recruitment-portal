@@ -53,7 +53,7 @@ class Candidate_listing(Strategy):
         self.user = user
 
     def execute(self):
-        handler = Candidate_listing()
+        handler = CandidateValidator()
         handler.escalate_request(ExistingListingValidator())
         request = {"listing": self.listing.name, "role": self.user["role"]}
         handler.handle_request(request)
