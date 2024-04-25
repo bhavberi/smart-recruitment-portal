@@ -111,7 +111,9 @@ async def get_report(
 
     sentiment = get_reply(f"/api/sentiment/{application['twitter_id'].split('/')[-1]}")
 
-    skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
+    # skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
+
+    skills = "Damn good at coding!"
 
     report_director = ReportDirector()
     report_director.builder = FullReportBuilder()
