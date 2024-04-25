@@ -55,7 +55,7 @@ payload = json.dumps(payload)
 headers = {"Content-Type": "application/json"}
 response = requests.post(url, data=payload, headers=headers, cookies=get_all_cookies())
 
-# st.write(response)
+st.write(response)
 
 if response.status_code == 200:
     report = json.loads(response.content)
