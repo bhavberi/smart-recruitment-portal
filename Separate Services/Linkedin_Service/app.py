@@ -2,6 +2,7 @@ from flask import Flask
 from os import getenv, system
 import json
 import re
+import time
 
 DEBUG = getenv("DEBUG", "False").lower() in ("true", "1", "t")
 SECRET_KEY = getenv("SECRET_KEY", "secret-key")
@@ -30,6 +31,8 @@ def skills(linkedin_link):
         return {"message": "Please provide a linkedin profile link"}
     if not re.match(linkedin_regex, linkedin_link):
         return {"message": "Invalid Linkedin Profile Link"}
+    
+    start_time = time.time()
 
     system(
         f"python3 scraper_linkedin/linkedin.py --profile_link={linkedin_link} > {OUTPUT_FILENAME}"
@@ -42,6 +45,9 @@ def skills(linkedin_link):
     jobs_index = jobs.find("\n{")
     jobs = jobs[jobs_index:]
     cleaned_string = jobs.replace("\n", "").replace("'", '"')
+
+    print(f"Time taken: {time.time() - start_time} seconds")
+    
     return json.loads(cleaned_string)
 
 
