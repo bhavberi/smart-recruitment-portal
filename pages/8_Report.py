@@ -37,3 +37,4 @@ if st.session_state["logged_in_role"] not in ["recruiter"]:
 
 
 st.write(f"{st.session_state['application_report']}")
+    
