@@ -137,7 +137,7 @@ async def approve(
     )
 
     if application["status"] == Status.pending:
-        result = update_status_application(userapplication.username, userapplication.listing, Status.approved)
+        result = update_status_application(userapplication.username, userapplication.listing, Status.accepted)
         if not result.modified_count:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
