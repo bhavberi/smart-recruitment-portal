@@ -35,6 +35,8 @@ from build_report import ReportDirector, FullReportBuilder
 
 router = APIRouter()
 
+INTER_COMMUNICATION_SECRET = getenv("INTER_COMMUNICATION_SECRET", "inter-communication-secret")
+
 # delete applications
 @router.delete("/delete_applications", status_code=status.HTTP_200_OK)
 async def delete_listing(
@@ -105,11 +107,11 @@ async def get_report(
         userapplication.username, userapplication.listing
     )
 
-    mbti = get_reply(f"/api/mbti/{application['twitter_id'].split('/')[-1]}")
+    mbti = get_reply(f"/api/mbti/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
 
-    llama = get_reply(f"/api/llama/{mbti}")
+    llama = get_reply(f"/api/llama/{mbti}", {"secret": INTER_COMMUNICATION_SECRET})
 
-    sentiment = get_reply(f"/api/sentiment/{application['twitter_id'].split('/')[-1]}")
+    sentiment = get_reply(f"/api/sentiment/{application['twitter_id'].split('/')[-1]}", {"secret": INTER_COMMUNICATION_SECRET})
 
     # skills = requests.get(f"http://localhost:8080/linkedin/{application['linkedin_id']}").text
 
