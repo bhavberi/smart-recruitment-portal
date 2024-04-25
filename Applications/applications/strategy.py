@@ -1,37 +1,16 @@
-from fastapi import APIRouter, HTTPException, Depends, status
-import requests
-from os import getenv
-
 from models.applications import Report, Listing
 from models.applications_otypes import (
-    ApplicationResponse,
-    UserApplication,
-    Approval,
     Applications,
-    ApplicationInput,
 )
 from utils import (
-    delete_applications,
-    create_application,
-    get_user_application,
-    approve_application,
     get_all_applications,
     get_all_user_applications,
-    get_user,
-    get_reply,
-    
 )
 
 from validation import (
-    AdminValidator,
-    SelfUserValidator,
     CandidateValidator,
     ExistingListingValidator,
-    ExistingApplicationValidator,
-    TwitterLinkValidator,
-    LinkedinLinkValidator,
     RecruiterValidator,
-    NoApplicationValidator
 )
 
 
