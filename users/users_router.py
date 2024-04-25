@@ -139,20 +139,7 @@ async def edit(
     response: Response,
     user: UserEditInput,  # type: ignore
     current_user: User = Depends(get_current_user),
-):
-    # Check if user email already exists
-    user.email = user.email.lower()
-    if user.email != current_user.email and get_user_by_email(user.email):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Email already registered"
-        )
-    
-    # Check if user username already exists
-    if user.username != current_user.username and get_user_by_username(user.username):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="Username already registered"
-        )
-
+):    
     handler = PhoneNumberValidator()
     dict_user = {}
     dict_user['contact'] = user.contact
